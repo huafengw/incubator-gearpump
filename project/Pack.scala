@@ -147,5 +147,6 @@ object Pack extends sbt.Build {
         packArchiveExcludes := Seq("integrationtest")
 
       )
-  ).dependsOn(core, streaming, services, yarn, storm)
+  ).dependsOn(core, streaming, services, yarn, storm).
+    disablePlugins(sbtassembly.AssemblyPlugin)
 }

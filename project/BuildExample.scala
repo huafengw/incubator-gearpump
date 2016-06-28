@@ -19,7 +19,7 @@
 import sbt.Keys._
 import sbt._
 import Build._
-import sbtassembly.Plugin.AssemblyKeys._
+import sbtassembly.AssemblyPlugin.autoImport._
 
 object BuildExample extends sbt.Build {
 
@@ -27,8 +27,9 @@ object BuildExample extends sbt.Build {
     id = "gearpump-examples",
     base = file("examples"),
     settings = commonSettings ++ noPublish
-  ) aggregate(wordcount, wordcountJava, complexdag, sol, fsio, examples_kafka,
-    distributedshell, stockcrawler, transport, examples_state, pagerank, distributeservice)
+  ).aggregate(wordcount, wordcountJava, complexdag, sol, fsio, examples_kafka,
+    distributedshell, stockcrawler, transport, examples_state, pagerank, distributeservice).
+    disablePlugins(sbtassembly.AssemblyPlugin)
 
   lazy val wordcountJava = Project(
     id = "gearpump-examples-wordcountjava",

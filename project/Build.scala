@@ -25,8 +25,7 @@ import sbt.Keys._
 import sbt._
 import Pack.packProject
 import org.scalajs.sbtplugin.cross.CrossProject
-import sbtassembly.Plugin.AssemblyKeys._
-import sbtassembly.Plugin._
+import sbtassembly.AssemblyPlugin.autoImport._
 import sbtunidoc.Plugin.UnidocKeys._
 import sbtunidoc.Plugin._
 import xerial.sbt.Sonatype._
@@ -104,6 +103,7 @@ object Build extends sbt.Build {
         System.getenv().get("SONATYPE_PASSWORD")),
 
       pomIncludeRepository := { _ => false },
+      test in assembly := {},
 
       publishTo := {
         val nexus = "https://repository.apache.org/"
@@ -209,7 +209,7 @@ object Build extends sbt.Build {
     scalacOptions += s"-P:genjavadoc:out=${target.value}/java"
   )
 
-  val myAssemblySettings = assemblySettings ++ Seq(
+  val myAssemblySettings = Seq(
     test in assembly := {},
     assemblyOption in assembly ~= {
       _.copy(includeScala = false)
@@ -254,31 +254,34 @@ object Build extends sbt.Build {
     settings = commonSettings ++ noPublish ++ gearpumpUnidocSetting)
     .aggregate(core, daemon, streaming, services, external_kafka, external_monoid,
       external_serializer, examples, storm, yarn, external_hbase, packProject,
-      external_hadoopfs, integration_test).settings(Defaults.itSettings: _*)
+      external_hadoopfs, integration_test).settings(Defaults.itSettings: _*).
+    disablePlugins(sbtassembly.AssemblyPlugin)
 
   lazy val core = Project(
     id = "gearpump-core",
     base = file("core"),
     settings = commonSettings ++ javadocSettings ++ coreDependencies
-  )
+  ).disablePlugins(sbtassembly.AssemblyPlugin)
 
   lazy val daemon = Project(
     id = "gearpump-daemon",
     base = file("daemon"),
     settings = commonSettings ++ daemonDependencies
-  ) dependsOn(core % "test->test; compile->compile", cgroup % "test->test; compile->compile")
+  ).disablePlugins(sbtassembly.AssemblyPlugin).
+    dependsOn(core % "test->test; compile->compile", cgroup % "test->test; compile->compile")
 
   lazy val cgroup = Project(
     id = "gearpump-experimental-cgroup",
     base = file("experiments/cgroup"),
     settings = commonSettings ++ noPublish ++ daemonDependencies
-  ) dependsOn (core % "test->test; compile->compile")
+  ).disablePlugins(sbtassembly.AssemblyPlugin) dependsOn (core % "test->test; compile->compile")
 
   lazy val streaming = Project(
     id = "gearpump-streaming",
     base = file("streaming"),
     settings = commonSettings ++ javadocSettings ++ streamingDependencies
-  ) dependsOn(core % "test->test; compile->compile", daemon % "test->test")
+  ).disablePlugins(sbtassembly.AssemblyPlugin).
+    dependsOn(core % "test->test; compile->compile", daemon % "test->test")
 
   lazy val external_kafka = Project(
     id = "gearpump-external-kafka",
@@ -291,13 +294,13 @@ object Build extends sbt.Build {
           ("org.apache.kafka" %% "kafka" % kafkaVersion classifier ("test")) % "test"
         )
       )
-  ) dependsOn (streaming % "test->test; provided")
+  ).disablePlugins(sbtassembly.AssemblyPlugin) dependsOn (streaming % "test->test; provided")
 
   lazy val services_full = CrossProject("gearpump-services", file("services"), CrossType.Full).
     settings(
       publish := {},
       publishLocal := {}
-    )
+    ).disablePlugins(sbtassembly.AssemblyPlugin)
 
   val distDashboardDirectory = s"${distDirectory}/target/pack/dashboard/views/scalajs"
 
@@ -423,7 +426,8 @@ object Build extends sbt.Build {
             exclude("ring", "ring-servlet")
         )
       )
-  ) dependsOn (streaming % "test->test; compile->compile")
+  ).disablePlugins(sbtassembly.AssemblyPlugin).
+    dependsOn (streaming % "test->test; compile->compile")
 
   lazy val yarn = Project(
     id = "gearpump-experiments-yarn",
@@ -442,7 +446,8 @@ object Build extends sbt.Build {
           "org.apache.hadoop" % "hadoop-yarn-server-nodemanager" % clouderaVersion % "provided"
         )
       )
-  ) dependsOn(services % "test->test;compile->compile", core % "provided")
+  ).disablePlugins(sbtassembly.AssemblyPlugin).
+    dependsOn(services % "test->test;compile->compile", core % "provided")
 
   lazy val external_hbase = Project(
     id = "gearpump-external-hbase",
@@ -485,7 +490,8 @@ object Build extends sbt.Build {
             exclude("log4j", "log4j")
         )
       )
-  ) dependsOn (streaming % "test->test; provided")
+  ).disablePlugins(sbtassembly.AssemblyPlugin).
+    dependsOn (streaming % "test->test; provided")
 
   lazy val external_monoid = Project(
     id = "gearpump-external-monoid",
@@ -496,7 +502,8 @@ object Build extends sbt.Build {
           "com.twitter" %% "algebird-core" % algebirdVersion
         )
       )
-  ) dependsOn (streaming % "provided")
+  ).disablePlugins(sbtassembly.AssemblyPlugin).
+    dependsOn (streaming % "provided")
 
   lazy val external_serializer = Project(
     id = "gearpump-external-serializer",
@@ -509,7 +516,7 @@ object Build extends sbt.Build {
             exclude("com.esotericsoftware.minlog", "minlog")
         )
       )
-  ) dependsOn (streaming % "provided")
+  ).disablePlugins(sbtassembly.AssemblyPlugin).dependsOn (streaming % "provided")
 
   lazy val external_hadoopfs = Project(
     id = "gearpump-external-hadoopfs",
@@ -521,5 +528,5 @@ object Build extends sbt.Build {
           "org.apache.hadoop" % "hadoop-hdfs" % clouderaVersion % "provided"
         )
       )
-  ) dependsOn (streaming % "test->test; provided")
+  ).disablePlugins(sbtassembly.AssemblyPlugin).dependsOn (streaming % "test->test; provided")
 }
