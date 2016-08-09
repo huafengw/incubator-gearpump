@@ -15,72 +15,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.gearpump.jarstore
 
-import java.io.File
-import java.net.URI
-import java.util.ServiceLoader
-import scala.collection.JavaConverters._
+import akka.actor.{Actor, Stash}
+import akka.pattern.pipe
+import org.slf4j.Logger
 
-import akka.actor.ActorSystem
-import com.typesafe.config.Config
+import org.apache.gearpump.cluster.ClientToMaster.{GetJarStoreServer, JarStoreServerAddress}
+import org.apache.gearpump.util._
 
-import org.apache.gearpump.util.{Constants, Util}
+class JarStoreService(jarStoreRootPath: String) extends Actor with Stash {
+  val host = context.system.settings.config.getString(Constants.GEARPUMP_HOSTNAME)
+  val jarStore = JarStore.get(jarStoreRootPath)
+  jarStore.init(context.system.settings.config)
+  val server = new FileServer(context.system, host, 0, jarStore)
+  implicit val timeout = Constants.FUTURE_TIMEOUT
+  implicit val executionContext = context.dispatcher
 
-case class FilePath(path: String)
+  server.start pipeTo self
 
-/**
- * JarStoreService is used to manage the upload/download of binary files,
- * like user submitted application jar.
- */
-trait JarStoreService {
-  /**
-   * The scheme of the JarStoreService.
-   * Like "hdfs" for HDFS file system, and "file" for a local
-   * file system.
-   */
-  val scheme: String
-
-  /**
-   * Init the Jar Store.
-   */
-  def init(config: Config, system: ActorSystem)
-
-  /**
-   * This function will copy the local file to the remote JarStore, called from client side.
-   * @param localFile The local file
-   */
-  def copyFromLocal(localFile: File): FilePath
-
-  /**
-   * This function will copy the remote file to local file system, called from client side.
-   *
-   * @param localFile The destination of file path
-   * @param remotePath The remote file path from JarStore
-   */
-  def copyToLocalFile(localFile: File, remotePath: FilePath)
-}
-
-object JarStoreService {
-
-  /**
-   * Get a active JarStoreService by specifying a scheme.
-   *
-   * Please see config [[org.apache.gearpump.util.Constants#GEARPUMP_APP_JAR_STORE_ROOT_PATH]] for
-   * more information.
-   */
-  def get(config: Config): JarStoreService = {
-    val jarStoreRootPath = config.getString(Constants.GEARPUMP_APP_JAR_STORE_ROOT_PATH)
-    get(jarStoreRootPath)
+  def receive: Receive = {
+    case FileServer.Port(port) =>
+      context.become(listen(port))
+      unstashAll()
+    case _ =>
+      stash()
   }
 
-  private lazy val jarstoreServices: List[JarStoreService] = {
-    ServiceLoader.load(classOf[JarStoreService]).asScala.toList
+  def listen(port: Int): Receive = {
+    case GetJarStoreServer =>
+      sender ! JarStoreServerAddress(s"http://$host:$port/")
   }
 
-  private def get(rootPath: String): JarStoreService = {
-    val scheme = new URI(Util.resolvePath(rootPath)).getScheme
-    jarstoreServices.find(_.scheme == scheme).get
+  override def postStop(): Unit = {
+    server.stop
   }
 }

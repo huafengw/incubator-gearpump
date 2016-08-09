@@ -36,7 +36,7 @@ import org.apache.gearpump.cluster.ClientToMaster.{GetLastFailure, QueryAppMaste
 import org.apache.gearpump.cluster.MasterToAppMaster.{AppMasterData, AppMasterDataDetailRequest, AppMasterDataRequest}
 import org.apache.gearpump.cluster.MasterToClient._
 import org.apache.gearpump.cluster.TestUtil
-import org.apache.gearpump.jarstore.JarStoreService
+import org.apache.gearpump.jarstore.{JarStoreClient, JarStoreService}
 import org.apache.gearpump.streaming.executor.Executor.{ExecutorConfig, ExecutorSummary, GetExecutorSummary, QueryExecutorConfig}
 import org.apache.gearpump.util.LogUtil
 // NOTE: This cannot be removed!!!
@@ -53,9 +53,9 @@ class AppMasterServiceSpec extends FlatSpec with ScalatestRouteTest
   val mockAppMaster = TestProbe()
   val failure = LastFailure(System.currentTimeMillis(), "Some error")
 
-  lazy val jarStoreService = JarStoreService.get(system.settings.config)
+  lazy val jarStoreClient = new JarStoreClient(system.settings.config, system)
 
-  def jarStore: JarStoreService = jarStoreService
+  def jarStore: JarStoreClient = jarStoreClient
 
   private def master = mockMaster.ref
 

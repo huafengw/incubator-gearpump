@@ -49,8 +49,6 @@ class WorkerServiceSpec
 
   protected def master = mockMaster.ref
 
-  lazy val jarStoreService = JarStoreService.get(system.settings.config)
-
   protected def workerRoute = new WorkerService(master, system).route
 
   mockWorker.setAutoPilot {

@@ -40,7 +40,7 @@ import org.apache.gearpump.cluster.MasterToAppMaster.{AppMasterData, AppMastersD
 import org.apache.gearpump.cluster.MasterToClient._
 import org.apache.gearpump.cluster.TestUtil
 import org.apache.gearpump.cluster.worker.{WorkerId, WorkerSummary}
-import org.apache.gearpump.jarstore.JarStoreService
+import org.apache.gearpump.jarstore.{JarStoreClient, JarStoreService}
 import org.apache.gearpump.services.MasterService.{BuiltinPartitioners, SubmitApplicationRequest}
 // NOTE: This cannot be removed!!!
 import org.apache.gearpump.services.util.UpickleUtil._
@@ -57,11 +57,10 @@ class MasterServiceSpec extends FlatSpec with ScalatestRouteTest
   val workerId = 0
   val mockWorker = TestProbe()
 
-  lazy val jarStoreService = JarStoreService.get(system.settings.config)
+  lazy val jarStoreClient = new JarStoreClient(system.settings.config, system)
+  def jarStore: JarStoreClient = jarStoreClient
 
   private def master = mockMaster.ref
-
-  def jarStore: JarStoreService = jarStoreService
 
   private def masterRoute = new MasterService(master, jarStore, system).route
 
