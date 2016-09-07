@@ -40,7 +40,7 @@ import org.apache.gearpump.cluster.MasterToClient.{HistoryMetrics, MasterConfig,
 import org.apache.gearpump.cluster.client.ClientContext
 import org.apache.gearpump.cluster.worker.WorkerSummary
 import org.apache.gearpump.cluster.{ClusterConfig, UserConfig}
-import org.apache.gearpump.jarstore.{JarStoreClient, FileDirective, JarStoreService}
+import org.apache.gearpump.jarstore.{JarStoreClient, FileDirective, JarStoreServer}
 import org.apache.gearpump.partitioner.{PartitionerByClassName, PartitionerDescription}
 import org.apache.gearpump.services.MasterService.{BuiltinPartitioners, SubmitApplicationRequest}
 // NOTE: This cannot be removed!!!

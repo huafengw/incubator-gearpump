@@ -34,7 +34,6 @@ import org.apache.gearpump.cluster.ClientToMaster.{QueryHistoryMetrics, QueryWor
 import org.apache.gearpump.cluster.MasterToClient.{HistoryMetrics, HistoryMetricsItem, ResolveWorkerIdResult, WorkerConfig}
 import org.apache.gearpump.cluster.TestUtil
 import org.apache.gearpump.cluster.worker.{WorkerId, WorkerSummary}
-import org.apache.gearpump.jarstore.JarStoreService
 // NOTE: This cannot be removed!!!
 import org.apache.gearpump.services.util.UpickleUtil._
 

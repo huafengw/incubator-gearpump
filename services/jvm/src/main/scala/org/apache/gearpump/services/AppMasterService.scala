@@ -33,7 +33,7 @@ import org.apache.gearpump.cluster.ClientToMaster._
 import org.apache.gearpump.cluster.ClusterConfig
 import org.apache.gearpump.cluster.MasterToAppMaster.{AppMasterData, AppMasterDataDetailRequest, AppMasterDataRequest}
 import org.apache.gearpump.cluster.MasterToClient._
-import org.apache.gearpump.jarstore.{JarStoreClient, FileDirective, JarStoreService}
+import org.apache.gearpump.jarstore.{JarStoreClient, FileDirective}
 import org.apache.gearpump.services.AppMasterService.Status
 // NOTE: This cannot be removed!!!
 import org.apache.gearpump.services.util.UpickleUtil._

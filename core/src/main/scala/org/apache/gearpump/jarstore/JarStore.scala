@@ -30,12 +30,12 @@ import scala.collection.JavaConverters._
 case class FilePath(path: String)
 
 /**
- * JarStoreService is used to manage the upload/download of binary files,
+ * JarStore is used to manage the upload/download of binary files,
  * like user submitted application jar.
  */
 trait JarStore {
   /**
-   * The scheme of the JarStoreService.
+   * The scheme of the JarStore.
    * Like "hdfs" for HDFS file system, and "file" for a local
    * file system.
    */
@@ -66,7 +66,7 @@ trait JarStore {
 object JarStore {
 
   /**
-   * Get a active JarStoreService by specifying a scheme.
+   * Get a active JarStore by specifying a scheme.
    *
    * Please see config [[org.apache.gearpump.util.Constants#GEARPUMP_APP_JAR_STORE_ROOT_PATH]] for
    * more information.

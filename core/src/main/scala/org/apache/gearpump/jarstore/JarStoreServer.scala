@@ -19,16 +19,15 @@ package org.apache.gearpump.jarstore
 
 import akka.actor.{Actor, Stash}
 import akka.pattern.pipe
-import org.slf4j.Logger
 
 import org.apache.gearpump.cluster.ClientToMaster.{GetJarStoreServer, JarStoreServerAddress}
 import org.apache.gearpump.util._
 
-class JarStoreService(jarStoreRootPath: String) extends Actor with Stash {
-  val host = context.system.settings.config.getString(Constants.GEARPUMP_HOSTNAME)
-  val jarStore = JarStore.get(jarStoreRootPath)
+class JarStoreServer(jarStoreRootPath: String) extends Actor with Stash {
+  private val host = context.system.settings.config.getString(Constants.GEARPUMP_HOSTNAME)
+  private val jarStore = JarStore.get(jarStoreRootPath)
   jarStore.init(context.system.settings.config)
-  val server = new FileServer(context.system, host, 0, jarStore)
+  private val server = new FileServer(context.system, host, 0, jarStore)
   implicit val timeout = Constants.FUTURE_TIMEOUT
   implicit val executionContext = context.dispatcher
 

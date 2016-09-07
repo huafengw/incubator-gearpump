@@ -76,9 +76,9 @@ object FileDirective {
     Directive[Tuple1[Form]] { inner =>
       extractMaterializer {implicit mat =>
         extractExecutionContext {implicit ec =>
-          uploadFileImpl(mat, ec) { filesFuture =>
+          uploadFileImpl(mat, ec) { formFuture =>
             ctx => {
-              filesFuture.map(map => inner(Tuple1(map))).flatMap(route => route(ctx))
+              formFuture.map(form => inner(Tuple1(form))).flatMap(route => route(ctx))
             }
           }
         }
@@ -120,10 +120,10 @@ object FileDirective {
       entity(as[Multipart.FormData]) { (formdata: Multipart.FormData) =>
         val fileNameMap = formdata.parts.mapAsync(1) { p =>
           if (p.filename.isDefined) {
-            val path = Instant.now() + p.filename.get
-            val sink = StreamConverters.fromOutputStream(() => jarStore.createFile(path), true)
-            val written = p.entity.dataBytes.runWith(sink)
-            written.map(written =>
+            val path = Instant.now().toEpochMilli + p.filename.get
+            val sink = StreamConverters.fromOutputStream(() => jarStore.createFile(path),
+              autoFlush = true)
+            p.entity.dataBytes.runWith(sink).map(written =>
               if (written.count > 0) {
                 Map(p.name -> FilePath(path))
               } else {
@@ -146,8 +146,8 @@ object FileDirective {
           if (p.filename.isDefined) {
             val targetPath = File.createTempFile(s"userfile_${p.name}_",
               s"${p.filename.getOrElse("")}")
-            val written = p.entity.dataBytes.runWith(FileIO.toFile(targetPath))
-            written.map(written =>
+            val writtenFuture = p.entity.dataBytes.runWith(FileIO.toFile(targetPath))
+            writtenFuture.map(written =>
               if (written.count > 0) {
                 Map(p.name -> Left(FileInfo(p.filename.get, targetPath, written.count)))
               } else {

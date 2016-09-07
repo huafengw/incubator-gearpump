@@ -43,7 +43,7 @@ import org.apache.gearpump.cluster.WorkerToMaster._
 import org.apache.gearpump.cluster.master.Master.MasterInfo
 import org.apache.gearpump.cluster.scheduler.Resource
 import org.apache.gearpump.cluster.{ClusterConfig, ExecutorJVMConfig}
-import org.apache.gearpump.jarstore.{JarStoreClient, JarStoreService}
+import org.apache.gearpump.jarstore.{JarStoreClient, JarStoreServer}
 import org.apache.gearpump.metrics.Metrics.ReportMetrics
 import org.apache.gearpump.metrics.{JvmMetricsSet, Metrics, MetricsReporterService}
 import org.apache.gearpump.util.ActorSystemBooter.Daemon

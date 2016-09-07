@@ -311,7 +311,6 @@ object Build extends sbt.Build {
     settings(serviceJvmSettings: _*)
     .settings(compile in Compile <<= (compile in Compile))
     .dependsOn(streaming % "test->test;compile->compile")
-//      daemon % "test->test;compile->compile;provided")
 
   lazy val serviceJvmSettings = commonSettings ++ noPublish ++ Seq(
     libraryDependencies ++= Seq(
@@ -346,7 +345,7 @@ object Build extends sbt.Build {
       "org.webjars.npm" % "dashing-deps" % "0.1.2",
       "org.webjars.npm" % "dashing" % "0.4.8"
     ).map(_.exclude("org.scalamacros", "quasiquotes_2.10"))
-      .map(_.exclude("org.webjars.bower", "angular")))
+      .map(_.exclude("org.scalamacros", "quasiquotes_2.10.3")))
 
   lazy val serviceJSSettings = Seq(
     scalaVersion := scalaVersionNumber,
@@ -445,7 +444,7 @@ object Build extends sbt.Build {
           "org.apache.hadoop" % "hadoop-yarn-server-nodemanager" % hadoopVersion % "provided"
         )
       ))
-      .dependsOn(services % "test->test;compile->compile", core % "provided", daemon % "provided")
+      .dependsOn(services % "test->test;compile->compile", daemon % "provided", core % "provided")
       .disablePlugins(sbtassembly.AssemblyPlugin)
 
   lazy val external_hbase = Project(

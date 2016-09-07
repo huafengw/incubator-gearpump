@@ -21,12 +21,14 @@ import java.io._
 
 import com.typesafe.config.Config
 import org.apache.gearpump.jarstore.JarStore
-import org.apache.gearpump.util.{FileUtils, Constants}
+import org.apache.gearpump.util.{LogUtil, FileUtils, Constants}
+import org.slf4j.Logger
 
 /**
  * LocalJarStoreService store the uploaded jar on local disk.
  */
 class LocalJarStore extends JarStore {
+  private val LOG: Logger = LogUtil.getLogger(getClass)
   private var rootPath: String = null
   override val scheme: String = "file"
 
@@ -61,7 +63,9 @@ class LocalJarStore extends JarStore {
     val is = try {
       new FileInputStream(localFile)
     } catch {
-      case ex: Exception => new ClosedInputStream
+      case ex: Exception =>
+        LOG.error(s"Fetch file $fileName failed: ${ex.getStackTrace}")
+        new ClosedInputStream
     }
     is
   }

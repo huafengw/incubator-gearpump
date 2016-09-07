@@ -20,7 +20,7 @@ package org.apache.gearpump.cluster.master
 
 import java.lang.management.ManagementFactory
 import org.apache.gearpump.cluster.worker.WorkerId
-import org.apache.gearpump.jarstore.JarStoreService
+import org.apache.gearpump.jarstore.JarStoreServer
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable
@@ -79,7 +79,7 @@ private[cluster] class Master extends Actor with Stash {
 
   val jarStoreRootPath = systemConfig.getString(Constants.GEARPUMP_APP_JAR_STORE_ROOT_PATH)
 
-  private val jarStore = context.actorOf(Props(classOf[JarStoreService], jarStoreRootPath))
+  private val jarStore = context.actorOf(Props(classOf[JarStoreServer], jarStoreRootPath))
 
   private val hostPort = HostPort(ActorUtil.getSystemAddress(context.system).hostPort)
 
