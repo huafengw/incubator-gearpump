@@ -27,7 +27,7 @@ import org.apache.hadoop.fs.Path
 import org.apache.hadoop.fs.permission.{FsAction, FsPermission}
 
 /**
- * DFSJarStoreService store the uploaded jar on HDFS
+ * DFSJarStore store the uploaded jar on HDFS
  */
 class DFSJarStore extends JarStore {
   private var rootPath: Path = null

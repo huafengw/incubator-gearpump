@@ -25,7 +25,7 @@ import org.apache.gearpump.util.{LogUtil, FileUtils, Constants}
 import org.slf4j.Logger
 
 /**
- * LocalJarStoreService store the uploaded jar on local disk.
+ * LocalJarStore store the uploaded jar on local disk.
  */
 class LocalJarStore extends JarStore {
   private val LOG: Logger = LogUtil.getLogger(getClass)
