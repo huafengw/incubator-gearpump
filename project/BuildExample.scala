@@ -27,7 +27,7 @@ object BuildExample extends sbt.Build {
     id = "gearpump-examples",
     base = file("examples"),
     settings = commonSettings ++ noPublish
-  ).aggregate(wordcount, wordcountJava, complexdag, sol, fsio, examples_kafka,
+  ).aggregate(wordcount, wordcountJava, complexdag, sol, fsio, examples_kafka, hdfs_sink,
     distributedshell, stockcrawler, transport, examples_state, pagerank, distributeservice).
     disablePlugins(sbtassembly.AssemblyPlugin)
 
@@ -158,6 +158,23 @@ object BuildExample extends sbt.Build {
           CrossVersion.binaryScalaVersion(scalaVersion.value)
       )
   ) dependsOn (streaming % "test->test; provided")
+
+  lazy val hdfs_sink = Project(
+    id = "gearpump-examples-hdfssink",
+    base = file("examples/streaming/hdfs"),
+    settings = commonSettings ++ noPublish ++ myAssemblySettings ++
+      Seq(
+        libraryDependencies ++= Seq(
+          "org.apache.hadoop" % "hadoop-common" % hadoopVersion % "provided",
+          "org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % "provided"
+        ),
+        mainClass in(Compile, packageBin) :=
+          Some("org.apache.gearpump.streaming.examples.hdfs.HDFSExample"),
+
+        target in assembly := baseDirectory.value.getParentFile.getParentFile / "target" /
+          CrossVersion.binaryScalaVersion(scalaVersion.value)
+      )
+  ) dependsOn (streaming % "test->test; provided", external_hadoopfs)
 
   lazy val examples_kafka = Project(
     id = "gearpump-examples-kafka",
