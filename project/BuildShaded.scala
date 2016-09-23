@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-import Build._
 import sbt.Keys._
 import sbt._
 import sbtassembly.AssemblyPlugin.autoImport._
@@ -29,7 +28,7 @@ object BuildShaded extends sbt.Build {
   val gsCollectionsVersion = "6.2.0"
   private val scalaVersionMajor = "2.11"
 
-  val shadeAssemblySettings = commonSettings ++ Seq(
+  val shadeAssemblySettings = Build.commonSettings ++ Seq(
     scalaVersion := Build.scalaVersionNumber,
     test in assembly := {},
     assemblyOption in assembly ~= {
