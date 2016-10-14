@@ -25,7 +25,7 @@ import org.apache.gearpump.cluster.AppMasterToMaster.{AppDataSaved, _}
 import org.apache.gearpump.cluster.ClientToMaster.{ResolveAppId, ShutdownApplication, SubmitApplication}
 import org.apache.gearpump.cluster.MasterToAppMaster.{AppMasterData, AppMasterRegistered, AppMastersData, AppMastersDataRequest, _}
 import org.apache.gearpump.cluster.MasterToClient.{ResolveAppIdResult, ShutdownApplicationResult, SubmitApplicationResult}
-import org.apache.gearpump.cluster.master.AppManager
+import org.apache.gearpump.cluster.master.{AppMasterLauncherFactory, AppManager}
 import org.apache.gearpump.cluster.master.AppManager._
 import org.apache.gearpump.cluster.master.InMemoryKVService.{GetKV, GetKVSuccess, PutKV, PutKVSuccess}
 import org.apache.gearpump.cluster.{TestUtil, _}
@@ -165,7 +165,6 @@ class AppManagerSpec extends FlatSpec with Matchers with BeforeAndAfterEach with
 }
 
 class DummyAppMasterLauncherFactory(test: TestProbe) extends AppMasterLauncherFactory {
-
   override def props(appId: Int, executorId: Int, app: AppDescription, jar: Option[AppJar],
       username: String, master: ActorRef, client: Option[ActorRef]): Props = {
     Props(new DummyAppMasterLauncher(test, appId))
