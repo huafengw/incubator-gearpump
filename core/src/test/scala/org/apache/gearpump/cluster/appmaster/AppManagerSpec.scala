@@ -172,8 +172,8 @@ class DummyAppMasterLauncherFactory(test: TestProbe) extends AppMasterLauncherFa
 }
 
 class DummyAppMasterLauncher(test: TestProbe, appId: Int) extends Actor {
-
   test.ref ! LauncherStarted(appId)
+  
   override def receive: Receive = {
     case any: Any => test.ref forward any
   }
