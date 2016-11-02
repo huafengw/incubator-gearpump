@@ -82,7 +82,6 @@ object Build extends sbt.Build {
       // ,addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0-M5" cross CrossVersion.full)
     ) ++
     Seq(
-      parallelExecution in Global := false,
       scalaVersion := scalaVersionNumber,
       crossScalaVersions := crossScalaVersionNumbers,
       organization := "org.apache.gearpump",
@@ -250,13 +249,20 @@ object Build extends sbt.Build {
 
   lazy val root = Project(
     id = "gearpump",
+    base = file("project"),
+    settings = commonSettings ++ noPublish ++ gearpumpUnidocSetting)
+      .aggregate(shaded, gearpump_root).settings(Defaults.itSettings: _*)
+      .disablePlugins(sbtassembly.AssemblyPlugin)
+
+  lazy val gearpump_root = Project(
+    id = "gearpump_root",
     base = file("."),
     settings = commonSettings ++ noPublish ++ gearpumpUnidocSetting)
-      .aggregate(core, streaming, services, external_kafka, external_monoid,
+    .aggregate(core, streaming, services, external_kafka, external_monoid,
       external_serializer, examples, storm, yarn, external_hbase, gearpumpHadoop, packProject,
       external_hadoopfs, integration_test).settings(Defaults.itSettings: _*)
-      .dependsOn(shaded)
-      .disablePlugins(sbtassembly.AssemblyPlugin)
+    .dependsOn(shaded)
+    .disablePlugins(sbtassembly.AssemblyPlugin)
 
   lazy val core = Project(
     id = "gearpump-core",
