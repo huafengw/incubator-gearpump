@@ -82,6 +82,7 @@ object Build extends sbt.Build {
       // ,addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0-M5" cross CrossVersion.full)
     ) ++
     Seq(
+      parallelExecution in Global := false,
       scalaVersion := scalaVersionNumber,
       crossScalaVersions := crossScalaVersionNumbers,
       organization := "org.apache.gearpump",
