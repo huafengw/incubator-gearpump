@@ -23,7 +23,6 @@ import org.apache.gearpump.streaming.kafka.lib.util.KafkaClient;
 import org.apache.gearpump.streaming.kafka.lib.source.consumer.FetchThread;
 import org.apache.gearpump.streaming.kafka.util.KafkaConfig;
 import org.apache.gearpump.streaming.transaction.api.CheckpointStore;
-import org.apache.gearpump.streaming.transaction.api.TimeReplayableSource;
 
 import java.util.Properties;
 
@@ -31,7 +30,7 @@ import java.util.Properties;
  * USER API for kafka source connector.
  * Please refer to {@link AbstractKafkaSource} for detailed descriptions and implementations.
  */
-public class KafkaSource extends AbstractKafkaSource implements TimeReplayableSource {
+public class KafkaSource extends AbstractKafkaSource {
 
   public KafkaSource(String topic, Properties properties) {
     super(topic, properties);

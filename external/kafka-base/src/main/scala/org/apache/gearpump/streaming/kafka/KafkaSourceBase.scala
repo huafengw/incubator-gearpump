@@ -15,25 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.gearpump.streaming.kafka;
+package org.apache.gearpump.streaming.kafka
 
-import org.apache.gearpump.streaming.kafka.lib.store.AbstractKafkaStoreFactory;
-import org.apache.gearpump.streaming.kafka.util.KafkaConfig;
+import java.util.Properties
 
-import java.util.Properties;
+import org.apache.gearpump.streaming.transaction.api.{CheckpointStoreFactory, TimeReplayableSource}
 
-/**
- * USER API for kafka store factory.
- * Please refer to {@link AbstractKafkaStoreFactory} for detailed descriptions and implementations.
- */
-public class KafkaStoreFactory extends AbstractKafkaStoreFactory {
+abstract class KafkaSourceBase(topics: List[String], props: Properties)
+  extends TimeReplayableSource {
 
-  public KafkaStoreFactory(Properties props) {
-    super(props);
-  }
-
-  /** constructor for tests */
-  KafkaStoreFactory(Properties props, KafkaConfig.KafkaConfigFactory factory) {
-    super(props, factory);
-  }
 }

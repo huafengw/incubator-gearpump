@@ -19,7 +19,6 @@ package org.apache.gearpump.streaming.kafka;
 
 import org.apache.gearpump.streaming.kafka.lib.sink.AbstractKafkaSink;
 import org.apache.gearpump.streaming.kafka.util.KafkaConfig;
-import org.apache.gearpump.streaming.sink.DataSink;
 
 import java.util.Properties;
 
@@ -27,7 +26,7 @@ import java.util.Properties;
  * USER API for kafka sink connector.
  * Please refer to {@link AbstractKafkaSink} for detailed descriptions and implementations.
  */
-public class KafkaSink extends AbstractKafkaSink implements DataSink {
+public class KafkaSink extends AbstractKafkaSink{
 
   public KafkaSink(String topic, Properties props) {
     super(topic, props);

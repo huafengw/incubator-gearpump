@@ -27,9 +27,18 @@ object BuildExternals extends sbt.Build {
   lazy val externals: Seq[ProjectReference] = Seq(
     external_hbase,
     external_kafka,
+    external_kafka_base,
+    external_kafka_010,
     external_monoid,
     external_hadoopfs
   )
+
+  lazy val external_kafka_base = Project(
+    id = "gearpump-external-kafka_base",
+    base = file("external/kafka-base"),
+    settings = commonSettings ++ javadocSettings)
+    .dependsOn(core % "provided", streaming % "test->test; provided")
+    .disablePlugins(sbtassembly.AssemblyPlugin)
 
   lazy val external_kafka = Project(
     id = "gearpump-external-kafka",
@@ -43,6 +52,18 @@ object BuildExternals extends sbt.Build {
         )
       ))
     .dependsOn(core % "provided", streaming % "test->test; provided")
+    .disablePlugins(sbtassembly.AssemblyPlugin)
+
+  lazy val external_kafka_010 = Project(
+    id = "gearpump-external-kafka_010",
+    base = file("external/kafka-0.10"),
+    settings = commonSettings ++ javadocSettings  ++
+      Seq(
+        libraryDependencies ++= Seq(
+          "org.apache.kafka" % "kafka-clients" % "0.10.0.1"
+        )
+      ))
+    .dependsOn(core % "provided", streaming % "test->test; provided", external_kafka_base)
     .disablePlugins(sbtassembly.AssemblyPlugin)
 
   lazy val external_hbase = Project(
