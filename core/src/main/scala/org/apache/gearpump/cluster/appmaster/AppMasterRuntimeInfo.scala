@@ -19,20 +19,20 @@
 package org.apache.gearpump.cluster.appmaster
 
 import akka.actor.ActorRef
-import com.typesafe.config.Config
-
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.gearpump._
 import org.apache.gearpump.cluster.AppMasterRegisterData
 
-/** Run time info used to start an AppMaster */
+/** Run time info of AppMaster */
 case class AppMasterRuntimeInfo(
     appId: Int,
     // AppName is the unique Id for an application
     appName: String,
-    worker: ActorRef = null,
-    user: String = null,
+    appMaster: ActorRef = ActorRef.noSender,
+    worker: ActorRef = ActorRef.noSender,
+    user: String = "",
     submissionTime: TimeStamp = 0,
     startTime: TimeStamp = 0,
     finishTime: TimeStamp = 0,
-    config: Config = null)
+    config: Config = ConfigFactory.empty())
   extends AppMasterRegisterData

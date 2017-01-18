@@ -86,9 +86,8 @@ class AppMasterSpec extends WordSpec with Matchers with BeforeAndAfterEach with 
 
     implicit val system = getActorSystem
     conf = UserConfig.empty.withValue(AppMasterSpec.MASTER, mockMaster.ref)
-    val mockJar = AppJar("for_test", FilePath("path"))
-    appMasterContext = AppMasterContext(appId, "test", resource, null, Some(mockJar),
-      mockMaster.ref, appMasterRuntimeInfo)
+    val mockJar = Some(AppJar("for_test", FilePath("path")))
+    appMasterContext = AppMasterContext(appId, "test", resource, null, mockJar, mockMaster.ref)
     val graph = Graph(taskDescription1 ~ partitioner ~> taskDescription2)
     val streamApp = StreamApplication("test", graph, conf)
     appDescription = Application.ApplicationToAppDescription(streamApp)
@@ -97,11 +96,12 @@ class AppMasterSpec extends WordSpec with Matchers with BeforeAndAfterEach with 
       30.seconds)), AppMasterSpec.MOCK_MASTER_PROXY)
     TestActorRef[AppMaster](
       AppMasterRuntimeEnvironment.props(List(mockMasterProxy.path), appDescription,
-        appMasterContext))(getActorSystem)
+        appMasterContext, appMasterRuntimeInfo))(getActorSystem)
 
     val registerAppMaster = mockMaster.receiveOne(15.seconds)
     registerAppMaster shouldBe a [RegisterAppMaster]
-    appMaster = registerAppMaster.asInstanceOf[RegisterAppMaster].appMaster
+    appMaster = registerAppMaster.asInstanceOf[RegisterAppMaster].registerData.
+      asInstanceOf[AppMasterRuntimeInfo].appMaster
 
     mockMaster.reply(AppMasterRegistered(appId))
     mockMaster.expectMsg(15.seconds, GetAppData(appId, "DAG"))

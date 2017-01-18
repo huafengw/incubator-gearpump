@@ -28,6 +28,8 @@ import org.apache.gearpump.cluster.master.MasterProxy
 import org.apache.gearpump.cluster.{AppDescription, AppMasterContext}
 import org.apache.gearpump.util.LogUtil
 
+import scala.concurrent.duration._
+
 /**
  * This serves as runtime environment for AppMaster.
  * When starting an AppMaster, we need to setup the connection to master,
@@ -43,6 +45,7 @@ import org.apache.gearpump.util.LogUtil
 private[appmaster]
 class AppMasterRuntimeEnvironment(
     appContextInput: AppMasterContext,
+    appMasterRuntimeInfo: AppMasterRuntimeInfo,
     app: AppDescription,
     masters: Iterable[ActorPath],
     masterFactory: (AppId, MasterActorRef) => Props,
@@ -50,10 +53,8 @@ class AppMasterRuntimeEnvironment(
     masterConnectionKeeperFactory: (MasterActorRef, RegisterAppMaster, ListenerActorRef) => Props)
   extends Actor {
 
-  val appId = appContextInput.appId
+  private val appId = appContextInput.appId
   private val LOG = LogUtil.getLogger(getClass, app = appId)
-
-  import scala.concurrent.duration._
 
   private val master = context.actorOf(
     masterFactory(appId, context.actorOf(Props(new MasterProxy(masters, 30.seconds)))))
@@ -63,24 +64,26 @@ class AppMasterRuntimeEnvironment(
   private val appMaster = context.actorOf(appMasterFactory(appContext, app))
   context.watch(appMaster)
 
-  private val registerAppMaster = RegisterAppMaster(appMaster, appContext.registerData)
+  private val updatedRuntimeInfo = appMasterRuntimeInfo.copy(appMaster = appMaster)
+  private val registerAppMaster = RegisterAppMaster(appId, updatedRuntimeInfo)
+
   private val masterConnectionKeeper = context.actorOf(
     masterConnectionKeeperFactory(master, registerAppMaster, self))
   context.watch(masterConnectionKeeper)
 
   def receive: Receive = {
     case MasterConnected =>
-      LOG.info(s"Master is connected, start AppMaster ${appId}...")
+      LOG.info(s"Master is connected, start AppMaster $appId...")
       appMaster ! StartAppMaster
     case MasterStopped =>
-      LOG.error(s"Master is stopped, stop AppMaster ${appId}...")
+      LOG.error(s"Master is stopped, stop AppMaster $appId...")
       context.stop(self)
     case Terminated(actor) => actor match {
       case `appMaster` =>
-        LOG.error(s"AppMaster ${appId} is stopped, shutdown myself")
+        LOG.error(s"AppMaster $appId is stopped, shutdown myself")
         context.stop(self)
       case `masterConnectionKeeper` =>
-        LOG.error(s"Master connection keeper is stopped, appId: ${appId}, shutdown myself")
+        LOG.error(s"Master connection keeper is stopped, appId: $appId, shutdown myself")
         context.stop(self)
       case _ => // Skip
     }
@@ -89,9 +92,8 @@ class AppMasterRuntimeEnvironment(
 
 object AppMasterRuntimeEnvironment {
 
-  def props(
-      masters: Iterable[ActorPath], app: AppDescription, appContextInput: AppMasterContext)
-    : Props = {
+  def props(masters: Iterable[ActorPath], app: AppDescription, appContextInput: AppMasterContext,
+      appMasterRuntimeInfo: AppMasterRuntimeInfo): Props = {
 
     val master = (appId: AppId, masterProxy: MasterActorRef) =>
       MasterWithExecutorSystemProvider.props(appId, masterProxy)
@@ -103,8 +105,8 @@ object AppMasterRuntimeEnvironment {
       RegisterAppMaster, listener: ListenerActorRef) => Props(new MasterConnectionKeeper(
         registerAppMaster, master, masterStatusListener = listener))
 
-    Props(new AppMasterRuntimeEnvironment(
-      appContextInput, app, masters, master, appMaster, masterConnectionKeeper))
+    Props(new AppMasterRuntimeEnvironment(appContextInput, appMasterRuntimeInfo, app, masters,
+      master, appMaster, masterConnectionKeeper))
   }
 
   /**

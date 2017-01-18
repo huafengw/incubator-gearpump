@@ -96,8 +96,6 @@ abstract class ApplicationMaster extends Actor
  * @param appJar application Jar. If the jar is already in classpath, then it can be None.
  * @param masterProxy The proxy to master actor, it bridges the messages between appmaster
  *                    and master
- * @param registerData AppMaster are required to send this data to Master by when doing
- *                     RegisterAppMaster.
  */
 case class AppMasterContext(
     appId: Int,
@@ -105,8 +103,7 @@ case class AppMasterContext(
     resource: Resource,
     workerInfo: WorkerInfo,
     appJar: Option[AppJar],
-    masterProxy: ActorRef,
-    registerData: AppMasterRegisterData)
+    masterProxy: ActorRef)
 
 /**
  * Jar file container in the cluster

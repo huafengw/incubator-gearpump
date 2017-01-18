@@ -62,7 +62,7 @@ class AppManagerSpec extends FlatSpec with Matchers with BeforeAndAfterEach with
     val appMaster = TestProbe()(getActorSystem)
     val appId = 1
 
-    val register = RegisterAppMaster(appMaster.ref, AppMasterRuntimeInfo(appId, "appName"))
+    val register = RegisterAppMaster(appId, AppMasterRuntimeInfo(appId, "appName", appMaster.ref))
     appMaster.send(appManager, register)
     appMaster.expectMsgType[AppMasterRegistered]
 
@@ -116,8 +116,8 @@ class AppManagerSpec extends FlatSpec with Matchers with BeforeAndAfterEach with
 
     kvService.expectMsgType[PutKV]
     appLauncher.expectMsg(LauncherStarted(appId))
-    appMaster.send(appManager, RegisterAppMaster(appMaster.ref,
-      AppMasterRuntimeInfo(appId, app.name)))
+    appMaster.send(appManager, RegisterAppMaster(appId,
+      AppMasterRuntimeInfo(appId, app.name, appMaster.ref)))
     appMaster.expectMsgType[AppMasterRegistered]
 
     client.send(appManager, submit)
@@ -136,8 +136,8 @@ class AppManagerSpec extends FlatSpec with Matchers with BeforeAndAfterEach with
 
     kvService.expectMsgType[PutKV]
     appLauncher.expectMsg(LauncherStarted(appId))
-    appMaster.send(appManager, RegisterAppMaster(appMaster.ref,
-      AppMasterRuntimeInfo(appId, app.name)))
+    appMaster.send(appManager, RegisterAppMaster(appId,
+      AppMasterRuntimeInfo(appId, app.name, appMaster.ref)))
     kvService.expectMsgType[PutKV]
     appMaster.expectMsgType[AppMasterRegistered]
 

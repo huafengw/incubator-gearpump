@@ -53,14 +53,15 @@ class DistServiceAppMasterSpec extends WordSpec with Matchers with BeforeAndAfte
   "DistService AppMaster" should {
     "responsable for service distributing" in {
       val appMasterInfo = AppMasterRuntimeInfo(appId, "appName", mockWorker1.ref)
-      val appMasterContext = AppMasterContext(appId, userName, resource, null, appJar, masterProxy,
-        appMasterInfo)
+      val appMasterContext = AppMasterContext(appId, userName, resource, null, appJar, masterProxy)
       TestActorRef[DistServiceAppMaster](
-        AppMasterRuntimeEnvironment.props(List(masterProxy.path), appDescription, appMasterContext))
+        AppMasterRuntimeEnvironment.props(List(masterProxy.path), appDescription,
+          appMasterContext, appMasterInfo))
       val registerAppMaster = mockMaster.receiveOne(15.seconds)
       assert(registerAppMaster.isInstanceOf[RegisterAppMaster])
 
-      val appMaster = registerAppMaster.asInstanceOf[RegisterAppMaster].appMaster
+      val appMaster = registerAppMaster.asInstanceOf[RegisterAppMaster].registerData.
+        asInstanceOf[AppMasterRuntimeInfo].appMaster
       mockMaster.reply(AppMasterRegistered(appId))
       // The DistributedShell AppMaster will ask for worker list
       mockMaster.expectMsg(GetAllWorkers)

@@ -174,7 +174,7 @@ object AppMasterToMaster {
    *                     Typically registerData hold some context information for this app Master.
    */
 
-  case class RegisterAppMaster(appMaster: ActorRef, registerData: AppMasterRegisterData)
+  case class RegisterAppMaster(appId: Int, registerData: AppMasterRegisterData)
 
   case class InvalidAppMaster(appId: Int, appMaster: String, reason: Throwable)
 

@@ -43,7 +43,6 @@ import org.apache.gearpump.util.Constants._
 import org.apache.gearpump.util.{ActorSystemBooter, ActorUtil, LogUtil, Util}
 
 /**
- *
  * AppMasterLauncher is a child Actor of AppManager, it is responsible
  * to launch the AppMaster on the cluster.
  */
@@ -66,18 +65,16 @@ class AppMasterLauncher(
 
   def waitForResourceAllocation: Receive = {
     case ResourceAllocated(allocations) =>
-
       val ResourceAllocation(resource, worker, workerId) = allocations(0)
       LOG.info(s"Resource allocated for appMaster $appId on worker ${workerId}(${worker.path})")
 
       val submissionTime = System.currentTimeMillis()
 
-      val appMasterInfo = AppMasterRuntimeInfo(appId, app.name, worker, username,
-        submissionTime, config = appMasterAkkaConfig)
+      val appMasterInfo = AppMasterRuntimeInfo(appId, app.name, ActorRef.noSender, worker,
+        username, submissionTime, config = appMasterAkkaConfig)
       val workerInfo = WorkerInfo(workerId, worker)
-      val appMasterContext =
-        AppMasterContext(appId, username, resource, workerInfo, jar, null, appMasterInfo)
-      LOG.info(s"Try to launch a executor for AppMaster on worker ${workerId} for app $appId")
+      val appMasterContext = AppMasterContext(appId, username, resource, workerInfo, jar, null)
+      LOG.info(s"Try to launch a executor for AppMaster on worker $workerId for app $appId")
       val name = ActorUtil.actorNameForExecutor(appId, executorId)
       val selfPath = ActorUtil.getFullPath(context.system, self.path)
 
@@ -88,12 +85,11 @@ class AppMasterLauncher(
         username, appMasterAkkaConfig)
 
       worker ! LaunchExecutor(appId, executorId, resource, executorJVM)
-      context.become(waitForActorSystemToStart(worker, appMasterContext, app.userConfig, resource))
+      context.become(waitForActorSystemToStart(worker, appMasterContext, appMasterInfo, resource))
   }
 
-  def waitForActorSystemToStart(
-      worker: ActorRef, appContext: AppMasterContext, user: UserConfig, resource: Resource)
-    : Receive = {
+  def waitForActorSystemToStart(worker: ActorRef, appContext: AppMasterContext,
+      appMasterInfo: AppMasterRuntimeInfo, resource: Resource): Receive = {
     case ExecutorLaunchRejected(reason, ex) =>
       LOG.error(s"Executor Launch failed reason: $reason", ex)
       LOG.info(s"reallocate resource $resource to start appmaster")
@@ -105,8 +101,8 @@ class AppMasterLauncher(
 
       val masterAddress = systemConfig.getStringList(GEARPUMP_CLUSTER_MASTERS)
         .asScala.map(HostPort(_)).map(ActorUtil.getMasterActorPath)
-      sender ! CreateActor(
-        AppMasterRuntimeEnvironment.props(masterAddress, app, appContext), s"appdaemon$appId")
+      sender ! CreateActor(AppMasterRuntimeEnvironment.props(masterAddress, app, appContext,
+        appMasterInfo), s"appdaemon$appId")
 
       import context.dispatcher
       val appMasterTimeout = scheduler.scheduleOnce(TIMEOUT, self,
@@ -121,7 +117,7 @@ class AppMasterLauncher(
       LOG.info(s"AppMaster is created, mission complete...")
       replyToClient(SubmitApplicationResult(Success(appId)))
       context.stop(self)
-    case CreateActorFailed(name, reason) =>
+    case CreateActorFailed(_, reason) =>
       cancel.cancel()
       worker ! ShutdownExecutor(appId, executorId, reason.getMessage)
       replyToClient(SubmitApplicationResult(Failure(reason)))
@@ -129,9 +125,7 @@ class AppMasterLauncher(
   }
 
   def replyToClient(result: SubmitApplicationResult): Unit = {
-    if (client.isDefined) {
-      client.get.tell(result, master)
-    }
+    client.foreach(_.tell(result, master))
   }
 }
 
