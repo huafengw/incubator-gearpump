@@ -45,7 +45,6 @@ import scala.concurrent.duration._
 private[appmaster]
 class AppMasterRuntimeEnvironment(
     appContextInput: AppMasterContext,
-    appMasterRuntimeInfo: AppMasterRuntimeInfo,
     app: AppDescription,
     masters: Iterable[ActorPath],
     masterFactory: (AppId, MasterActorRef) => Props,
@@ -64,8 +63,7 @@ class AppMasterRuntimeEnvironment(
   private val appMaster = context.actorOf(appMasterFactory(appContext, app))
   context.watch(appMaster)
 
-  private val updatedRuntimeInfo = appMasterRuntimeInfo.copy(appMaster = appMaster)
-  private val registerAppMaster = RegisterAppMaster(appId, updatedRuntimeInfo)
+  private val registerAppMaster = RegisterAppMaster(appId, appMaster, appContext.workerInfo)
 
   private val masterConnectionKeeper = context.actorOf(
     masterConnectionKeeperFactory(master, registerAppMaster, self))
@@ -92,8 +90,8 @@ class AppMasterRuntimeEnvironment(
 
 object AppMasterRuntimeEnvironment {
 
-  def props(masters: Iterable[ActorPath], app: AppDescription, appContextInput: AppMasterContext,
-      appMasterRuntimeInfo: AppMasterRuntimeInfo): Props = {
+  def props(masters: Iterable[ActorPath], app: AppDescription, appContextInput: AppMasterContext
+      ): Props = {
 
     val master = (appId: AppId, masterProxy: MasterActorRef) =>
       MasterWithExecutorSystemProvider.props(appId, masterProxy)
@@ -105,7 +103,7 @@ object AppMasterRuntimeEnvironment {
       RegisterAppMaster, listener: ListenerActorRef) => Props(new MasterConnectionKeeper(
         registerAppMaster, master, masterStatusListener = listener))
 
-    Props(new AppMasterRuntimeEnvironment(appContextInput, appMasterRuntimeInfo, app, masters,
+    Props(new AppMasterRuntimeEnvironment(appContextInput, app, masters,
       master, appMaster, masterConnectionKeeper))
   }
 

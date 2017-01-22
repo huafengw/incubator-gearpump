@@ -215,6 +215,8 @@ private[cluster] class Master extends Actor with Stash {
 
     case invalidAppMaster: InvalidAppMaster =>
       appManager forward invalidAppMaster
+    case statusChanged: ApplicationStatusChanged =>
+      appManager forward statusChanged
   }
 
   import scala.util.{Failure, Success}

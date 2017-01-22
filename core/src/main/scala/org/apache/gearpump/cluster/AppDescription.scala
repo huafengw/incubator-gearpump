@@ -38,8 +38,7 @@ import org.apache.gearpump.jarstore.FilePath
  *                      really need to change it, please use ClusterConfigSource(filePath) to
  *                      construct the object, while filePath points to the .conf file.
  */
-case class AppDescription(
-    name: String, appMaster: String, userConfig: UserConfig,
+case class AppDescription(name: String, appMaster: String, userConfig: UserConfig,
     clusterConfig: Config = ConfigFactory.empty())
 
 /**
@@ -140,3 +139,46 @@ case class ExecutorJVMConfig(
     classPath: Array[String], jvmArguments: Array[String], mainClass: String,
     arguments: Array[String], jar: Option[AppJar], username: String,
     executorAkkaConfig: Config = ConfigFactory.empty())
+
+// Not using Enumeration here because upickle does not support it
+sealed trait ApplicationStatus {
+  def isTerminalStatus: Boolean
+}
+
+object ApplicationStatus {
+  case object Pending extends ApplicationStatus {
+    override def toString: String = "pending"
+
+    override def isTerminalStatus: Boolean = false
+  }
+
+  case object Active extends ApplicationStatus {
+    override def toString: String = "active"
+
+    override def isTerminalStatus: Boolean = false
+  }
+
+  case object Finished extends ApplicationStatus {
+    override def toString: String = "finished"
+
+    override def isTerminalStatus: Boolean = true
+  }
+
+  case object Failed extends ApplicationStatus {
+    override def toString: String = "failed"
+
+    override def isTerminalStatus: Boolean = true
+  }
+
+  case object Terminated extends ApplicationStatus {
+    override def toString: String = "terminated"
+
+    override def isTerminalStatus: Boolean = true
+  }
+
+  case object Nonexist extends ApplicationStatus {
+    override def toString: String = "nonexist"
+
+    override def isTerminalStatus: Boolean = true
+  }
+}

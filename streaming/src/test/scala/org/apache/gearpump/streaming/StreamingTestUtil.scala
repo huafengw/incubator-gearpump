@@ -20,7 +20,7 @@ package org.apache.gearpump.streaming
 import akka.actor._
 import akka.testkit.TestActorRef
 import org.apache.gearpump.cluster.AppMasterToMaster.RegisterAppMaster
-import org.apache.gearpump.cluster.appmaster.AppMasterRuntimeInfo
+import org.apache.gearpump.cluster.appmaster.ApplicationRuntimeInfo
 import org.apache.gearpump.cluster.scheduler.Resource
 import org.apache.gearpump.cluster.{AppDescription, AppMasterContext, MiniCluster, UserConfig}
 import org.apache.gearpump.streaming.appmaster.AppMaster
@@ -33,7 +33,6 @@ object StreamingTestUtil {
   def startAppMaster(miniCluster: MiniCluster, appId: Int): TestActorRef[AppMaster] = {
 
     implicit val actorSystem = miniCluster.system
-    val appMasterRuntimeInfo = AppMasterRuntimeInfo(appId, appName = appId.toString)
     val masterConf = AppMasterContext(appId, testUserName, Resource(1), null,
       None, miniCluster.mockMaster)
 
@@ -41,7 +40,7 @@ object StreamingTestUtil {
     val appDescription = AppDescription(app.name, app.appMaster.getName, app.userConfig)
     val props = Props(new AppMaster(masterConf, appDescription))
     val appMaster = miniCluster.launchActor(props).asInstanceOf[TestActorRef[AppMaster]]
-    val registerAppMaster = RegisterAppMaster(appId, appMasterRuntimeInfo)
+    val registerAppMaster = RegisterAppMaster(appId, ActorRef.noSender, null)
     miniCluster.mockMaster.tell(registerAppMaster, appMaster)
 
     appMaster

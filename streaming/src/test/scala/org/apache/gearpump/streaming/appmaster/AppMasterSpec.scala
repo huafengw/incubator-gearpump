@@ -29,7 +29,7 @@ import org.apache.gearpump.cluster.MasterToAppMaster._
 import org.apache.gearpump.cluster.MasterToClient.LastFailure
 import org.apache.gearpump.cluster.WorkerToAppMaster.ExecutorLaunchRejected
 import org.apache.gearpump.cluster._
-import org.apache.gearpump.cluster.appmaster.{AppMasterRuntimeEnvironment, AppMasterRuntimeInfo}
+import org.apache.gearpump.cluster.appmaster.{AppMasterRuntimeEnvironment, ApplicationRuntimeInfo}
 import org.apache.gearpump.cluster.master.MasterProxy
 import org.apache.gearpump.cluster.scheduler.{Resource, ResourceAllocation, ResourceRequest}
 import org.apache.gearpump.cluster.worker.WorkerId
@@ -72,7 +72,7 @@ class AppMasterSpec extends WordSpec with Matchers with BeforeAndAfterEach with 
   var mockWorker: TestProbe = null
   var appDescription: AppDescription = null
   var appMasterContext: AppMasterContext = null
-  var appMasterRuntimeInfo: AppMasterRuntimeInfo = null
+  var appMasterRuntimeInfo: ApplicationRuntimeInfo = null
 
   override def beforeEach(): Unit = {
     startActorSystem()
@@ -82,7 +82,7 @@ class AppMasterSpec extends WordSpec with Matchers with BeforeAndAfterEach with 
     mockMaster = TestProbe()(getActorSystem)
     mockWorker = TestProbe()(getActorSystem)
     mockMaster.ignoreMsg(ignoreSaveAppData)
-    appMasterRuntimeInfo = AppMasterRuntimeInfo(appId, appName = appId.toString)
+    appMasterRuntimeInfo = ApplicationRuntimeInfo(appId, appName = appId.toString)
 
     implicit val system = getActorSystem
     conf = UserConfig.empty.withValue(AppMasterSpec.MASTER, mockMaster.ref)
@@ -96,12 +96,11 @@ class AppMasterSpec extends WordSpec with Matchers with BeforeAndAfterEach with 
       30.seconds)), AppMasterSpec.MOCK_MASTER_PROXY)
     TestActorRef[AppMaster](
       AppMasterRuntimeEnvironment.props(List(mockMasterProxy.path), appDescription,
-        appMasterContext, appMasterRuntimeInfo))(getActorSystem)
+        appMasterContext))(getActorSystem)
 
     val registerAppMaster = mockMaster.receiveOne(15.seconds)
     registerAppMaster shouldBe a [RegisterAppMaster]
-    appMaster = registerAppMaster.asInstanceOf[RegisterAppMaster].registerData.
-      asInstanceOf[AppMasterRuntimeInfo].appMaster
+    appMaster = registerAppMaster.asInstanceOf[RegisterAppMaster].appMaster
 
     mockMaster.reply(AppMasterRegistered(appId))
     mockMaster.expectMsg(15.seconds, GetAppData(appId, "DAG"))
@@ -281,7 +280,7 @@ class AppMasterSpec extends WordSpec with Matchers with BeforeAndAfterEach with 
 
   def expectAppStarted(): Unit = {
     // wait for app to get started
-    mockMaster.expectMsg(ActivateAppMaster(appId))
+    mockMaster.expectMsgType[ApplicationStatusChanged]
     mockMaster.reply(AppMasterActivated(appId))
   }
 }

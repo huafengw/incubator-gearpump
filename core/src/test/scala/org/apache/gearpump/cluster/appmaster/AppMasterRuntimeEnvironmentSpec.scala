@@ -113,7 +113,6 @@ class AppMasterRuntimeEnvironmentSpec extends FlatSpec with Matchers with Before
 
   private def setupAppMasterRuntimeEnv(): TestAppMasterEnv = {
     val appContext = AppMasterContext(0, null, null, null, null, null)
-    val appRuntimeInfo = AppMasterRuntimeInfo(0, "app")
     val app = AppDescription("app", "AppMasterClass", null, null)
     val master = TestProbe()
     val masterFactory = (_: AppId, _: MasterActorRef) => toProps(master)
@@ -126,7 +125,7 @@ class AppMasterRuntimeEnvironmentSpec extends FlatSpec with Matchers with Before
 
     val runtimeEnv = system.actorOf(
       Props(new AppMasterRuntimeEnvironment(
-        appContext, appRuntimeInfo, app, List(master.ref.path), masterFactory,
+        appContext, app, List(master.ref.path), masterFactory,
         appMasterFactory, masterConnectionKeeperFactory)))
 
     TestAppMasterEnv(master, appMaster, masterConnectionKeeper, runtimeEnv)

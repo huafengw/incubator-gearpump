@@ -44,6 +44,14 @@ object ActorUtil {
     system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress
   }
 
+  def getFullPath(system: ActorSystem, actorRef: ActorRef): String = {
+    if (actorRef != ActorRef.noSender) {
+      getFullPath(system, actorRef.path)
+    } else {
+      ""
+    }
+  }
+
   def getFullPath(system: ActorSystem, path: ActorPath): String = {
     path.toStringWithAddress(getSystemAddress(system))
   }

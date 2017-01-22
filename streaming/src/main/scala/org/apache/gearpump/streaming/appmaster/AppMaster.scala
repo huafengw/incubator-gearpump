@@ -22,7 +22,7 @@ import java.lang.management.ManagementFactory
 
 import akka.actor._
 import org.apache.gearpump._
-import org.apache.gearpump.cluster.AppMasterToMaster.ActivateAppMaster
+import org.apache.gearpump.cluster.AppMasterToMaster.{ActivateAppMaster, ApplicationStatusChanged}
 import org.apache.gearpump.cluster.ClientToMaster._
 import org.apache.gearpump.cluster.MasterToAppMaster.{AppMasterActivated, AppMasterDataDetailRequest, ReplayFromTimestampWindowTrailingEdge}
 import org.apache.gearpump.cluster.MasterToClient.{HistoryMetrics, HistoryMetricsItem, LastFailure}
@@ -36,7 +36,7 @@ import org.apache.gearpump.streaming._
 import org.apache.gearpump.streaming.appmaster.AppMaster._
 import org.apache.gearpump.streaming.appmaster.DagManager.{GetLatestDAG, LatestDAG, ReplaceProcessor}
 import org.apache.gearpump.streaming.appmaster.ExecutorManager.{ExecutorInfo, GetExecutorInfo}
-import org.apache.gearpump.streaming.appmaster.TaskManager.{ApplicationReady, GetTaskList, TaskList, FailedToRecover}
+import org.apache.gearpump.streaming.appmaster.TaskManager.{ApplicationReady, FailedToRecover, GetTaskList, TaskList}
 import org.apache.gearpump.streaming.executor.Executor.{ExecutorConfig, ExecutorSummary, GetExecutorSummary, QueryExecutorConfig}
 import org.apache.gearpump.streaming.storage.InMemoryAppStoreOnMaster
 import org.apache.gearpump.streaming.task._
@@ -218,7 +218,7 @@ class AppMaster(appContext: AppMasterContext, app: AppDescription) extends Appli
             appName = app.name,
             actorPath = address,
             clock = clock,
-            status = MasterToAppMaster.AppMasterActive,
+            status = ApplicationStatus.Active,
             startTime = startTime,
             uptime = System.currentTimeMillis() - startTime,
             user = username,
@@ -292,7 +292,8 @@ class AppMaster(appContext: AppMasterContext, app: AppDescription) extends Appli
 
   def ready: Receive = {
     case ApplicationReady =>
-      masterProxy ! ActivateAppMaster(appId)
+      masterProxy ! ApplicationStatusChanged(appId, ApplicationStatus.Active,
+        System.currentTimeMillis(), null)
     case AppMasterActivated(id) =>
       LOG.info(s"AppMaster for app$id is activated")
   }

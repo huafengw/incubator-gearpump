@@ -36,7 +36,7 @@ class MasterConnectionKeeperSpec extends FlatSpec with Matchers with BeforeAndAf
 
   implicit var system: ActorSystem = null
   val appId = 0
-  val register = RegisterAppMaster(appId, null)
+  val register = RegisterAppMaster(appId, null, null)
 
   override def beforeAll(): Unit = {
     system = ActorSystem("test", TestUtil.DEFAULT_CONFIG)

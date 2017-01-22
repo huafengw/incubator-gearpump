@@ -18,21 +18,31 @@
 
 package org.apache.gearpump.cluster.appmaster
 
-import akka.actor.ActorRef
-import com.typesafe.config.{Config, ConfigFactory}
-import org.apache.gearpump._
-import org.apache.gearpump.cluster.AppMasterRegisterData
+import org.apache.gearpump.cluster.{AppDescription, AppJar}
+import akka.routing.MurmurHash._
 
-/** Run time info of AppMaster */
-case class AppMasterRuntimeInfo(
-    appId: Int,
-    // AppName is the unique Id for an application
-    appName: String,
-    appMaster: ActorRef = ActorRef.noSender,
-    worker: ActorRef = ActorRef.noSender,
-    user: String = "",
-    submissionTime: TimeStamp = 0,
-    startTime: TimeStamp = 0,
-    finishTime: TimeStamp = 0,
-    config: Config = ConfigFactory.empty())
-  extends AppMasterRegisterData
+/**
+ * The meta data of an application, which stores the crucial infomation of how to launch
+ * the application, like the application jar file location. This data is distributed
+ * across the masters.
+ */
+case class ApplicationMetaData(appId: Int, attemptId: Int, app: AppDescription,
+    jar: Option[AppJar], username: String) extends Serializable {
+
+  override def equals(other: Any): Boolean = {
+    other match {
+      case that: ApplicationMetaData =>
+        if (appId == that.appId && attemptId == that.attemptId && app.equals(that.app)) {
+          true
+        } else {
+          false
+        }
+      case _ =>
+        false
+    }
+  }
+
+  override def hashCode: Int = {
+    extendHash(appId, attemptId, startMagicA, startMagicB)
+  }
+}
