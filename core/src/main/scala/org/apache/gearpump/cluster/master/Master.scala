@@ -259,6 +259,8 @@ private[cluster] class Master extends Actor with Stash {
       appManager forward query
     case QueryMasterConfig =>
       sender ! MasterConfig(ClusterConfig.filterOutDefaultConfig(systemConfig))
+    case register: RegisterAppResultListener =>
+      appManager forward register
   }
 
   def disassociated: Receive = {

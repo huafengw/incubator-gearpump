@@ -112,6 +112,11 @@ object ClientToMaster {
    * Request app master for a short list of cluster app that administrators should be aware of.
    */
   case class GetLastFailure(appId: Int)
+
+  /**
+   * Register a client to wait application's result
+   */
+  case class RegisterAppResultListener(appId: Int, listener: ActorRef)
 }
 
 object MasterToClient {

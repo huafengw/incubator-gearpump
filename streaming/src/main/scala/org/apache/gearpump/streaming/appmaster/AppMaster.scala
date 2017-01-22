@@ -303,11 +303,16 @@ class AppMaster(appContext: AppMasterContext, app: AppDescription) extends Appli
     case FailedToRecover(errorMsg) =>
       if (context.children.toList.contains(sender())) {
         LOG.error(errorMsg)
-        masterProxy ! ShutdownApplication(appId)
+        val failed = ApplicationStatusChanged(appId, ApplicationStatus.Failed, lastFailure.time,
+          new Exception(lastFailure.error))
+        masterProxy ! failed
       }
     case AllocateResourceTimeOut =>
-      LOG.error(s"Failed to allocate resource in time, shutdown application $appId")
-      masterProxy ! ShutdownApplication(appId)
+      val errorMsg = s"Failed to allocate resource in time, shutdown application $appId"
+      LOG.error(errorMsg)
+      val failed = ApplicationStatusChanged(appId, ApplicationStatus.Failed,
+        System.currentTimeMillis(), new Exception(lastFailure.error))
+      masterProxy ! failed
       context.stop(self)
   }
 

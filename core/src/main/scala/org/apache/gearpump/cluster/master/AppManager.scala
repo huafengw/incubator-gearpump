@@ -58,6 +58,7 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
   private var nextAppId: Int = 1
 
   private var applicationRegistry = Map.empty[Int, ApplicationRuntimeInfo]
+  private var appResultListeners = Map.empty[Int, List[ActorRef]]
 
   private var appMasterRestartPolicies = Map.empty[Int, RestartPolicy]
 
@@ -192,6 +193,10 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
         case None =>
           sender ! AppMasterData(ApplicationStatus.Nonexist)
       }
+
+    case RegisterAppResultListener(appId, listener) =>
+      val listenerList = appResultListeners.getOrElse(appId, List.empty[ActorRef])
+      appResultListeners += appId -> (listenerList :+ listener)
   }
 
   def workerMessage: Receive = {
@@ -228,20 +233,23 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
             case finished@ApplicationStatus.Finished =>
               killAppMasterExecutor(appId, appRuntimeInfo.worker)
               updatedStatus = appRuntimeInfo.onTerminalStatus(timeStamp, finished)
+              appResultListeners.getOrElse(appId, List.empty).foreach{ client =>
+                client ! ApplicationFinished(appId)
+              }
             case failed@ApplicationStatus.Failed =>
               killAppMasterExecutor(appId, appRuntimeInfo.worker)
               updatedStatus = appRuntimeInfo.onTerminalStatus(timeStamp, failed)
-
+              appResultListeners.getOrElse(appId, List.empty).foreach{ client =>
+                client ! ApplicationFailed(appId, error)
+              }
             case terminated@ApplicationStatus.Terminated =>
               updatedStatus = appRuntimeInfo.onTerminalStatus(timeStamp, terminated)
-
             case _ =>
           }
 
           if (newStatus.isTerminalStatus) {
             kvService ! DeleteKVGroup(appId.toString)
           }
-
           applicationRegistry += appId -> updatedStatus
           kvService ! PutKV(MASTER_GROUP, MASTER_STATE, MasterState(nextAppId, applicationRegistry))
         case None =>

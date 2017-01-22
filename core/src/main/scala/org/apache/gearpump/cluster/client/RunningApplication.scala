@@ -18,17 +18,21 @@
 package org.apache.gearpump.cluster.client
 
 import akka.pattern.ask
-import akka.actor.ActorRef
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.util.Timeout
-import org.apache.gearpump.cluster.ClientToMaster.{ResolveAppId, ShutdownApplication}
-import org.apache.gearpump.cluster.MasterToClient.{ResolveAppIdResult, ShutdownApplicationResult}
+import org.apache.gearpump.cluster.ClientToMaster.{RegisterAppResultListener, ResolveAppId, ShutdownApplication}
+import org.apache.gearpump.cluster.MasterToClient.{ApplicationResult, ResolveAppIdResult, ShutdownApplicationResult}
+import org.apache.gearpump.cluster.client.RunningApplication.{AppResultListener, WaitUntilFinish}
 import org.apache.gearpump.util.ActorUtil
+import org.apache.gearpump.cluster.client.RunningApplication._
 
-import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class RunningApplication(val appId: Int, master: ActorRef, timeout: Timeout) {
+class RunningApplication(val appId: Int, master: ActorRef, timeout: Timeout,
+    system: ActorSystem) {
   lazy val appMaster: Future[ActorRef] = resolveAppMaster(appId)
 
   def shutDown(): Unit = {
@@ -40,6 +44,12 @@ class RunningApplication(val appId: Int, master: ActorRef, timeout: Timeout) {
     }
   }
 
+  def waitUnilFinish(): ApplicationResult = {
+    val delegator = system.actorOf(Props(new AppResultListener(appId, master)))
+    Await.result(delegator.ask(WaitUntilFinish)(INF_TIMEOUT).asInstanceOf
+      [Future[ApplicationResult]], Duration.Inf)
+  }
+
   def askAppMaster[T](msg: Any): Future[T] = {
     appMaster.flatMap(_.ask(msg)(timeout).asInstanceOf[Future[T]])
   }
@@ -47,6 +57,26 @@ class RunningApplication(val appId: Int, master: ActorRef, timeout: Timeout) {
   private def resolveAppMaster(appId: Int): Future[ActorRef] = {
     master.ask(ResolveAppId(appId))(timeout).
       asInstanceOf[Future[ResolveAppIdResult]].map(_.appMaster.get)
+  }
+}
+
+object RunningApplication {
+  // This magic number is derived from Akka's configuration, which is the maximum delay
+  private val INF_TIMEOUT = new Timeout(2147482 seconds)
+
+  private case object WaitUntilFinish
+
+  private class AppResultListener(appId: Int, master: ActorRef) extends Actor {
+    private var client: ActorRef = _
+    master ! RegisterAppResultListener(appId, self)
+
+    override def receive: Receive = {
+      case WaitUntilFinish =>
+        this.client = sender()
+      case result: ApplicationResult =>
+        client forward result
+        context.stop(self)
+    }
   }
 }
 
