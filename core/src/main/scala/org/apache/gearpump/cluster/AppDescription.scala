@@ -140,45 +140,22 @@ case class ExecutorJVMConfig(
     arguments: Array[String], jar: Option[AppJar], username: String,
     executorAkkaConfig: Config = ConfigFactory.empty())
 
-// Not using Enumeration here because upickle does not support it
-sealed trait ApplicationStatus {
-  def isTerminalStatus: Boolean
+sealed abstract class ApplicationStatus(val status: String, isTerminal: Boolean) {
+  override def toString: String = status
+
+  def isTerminalStatus: Boolean = isTerminal
 }
 
 object ApplicationStatus {
-  case object Pending extends ApplicationStatus {
-    override def toString: String = "pending"
+  case object Pending extends ApplicationStatus("pending", false)
 
-    override def isTerminalStatus: Boolean = false
-  }
+  case object Active extends ApplicationStatus("active", false)
 
-  case object Active extends ApplicationStatus {
-    override def toString: String = "active"
+  case object Finished extends ApplicationStatus("finished", true)
 
-    override def isTerminalStatus: Boolean = false
-  }
+  case object Failed extends ApplicationStatus("failed", true)
 
-  case object Finished extends ApplicationStatus {
-    override def toString: String = "finished"
+  case object Terminated extends ApplicationStatus("terminated", true)
 
-    override def isTerminalStatus: Boolean = true
-  }
-
-  case object Failed extends ApplicationStatus {
-    override def toString: String = "failed"
-
-    override def isTerminalStatus: Boolean = true
-  }
-
-  case object Terminated extends ApplicationStatus {
-    override def toString: String = "terminated"
-
-    override def isTerminalStatus: Boolean = true
-  }
-
-  case object Nonexist extends ApplicationStatus {
-    override def toString: String = "nonexist"
-
-    override def isTerminalStatus: Boolean = true
-  }
+  case object Nonexist extends ApplicationStatus("nonexist", true)
 }
