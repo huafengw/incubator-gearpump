@@ -28,23 +28,23 @@ import org.apache.gearpump.util.HistoryMetricsService.HistoryMetricsConfig
 
 /** Stream application summary, used for REST API */
 case class StreamAppMasterSummary(
-                                   appType: String = "streaming",
-                                   appId: Int,
-                                   appName: String = null,
-                                   actorPath: String = null,
-                                   clock: TimeStamp = 0L,
-                                   status: ApplicationStatus = ApplicationStatus.Active,
-                                   startTime: TimeStamp = 0L,
-                                   uptime: TimeStamp = 0L,
-                                   user: String = null,
-                                   homeDirectory: String = "",
-                                   logFile: String = "",
-                                   dag: Graph[ProcessorId, String] = null,
-                                   executors: List[ExecutorBrief] = null,
-                                   processors: Map[ProcessorId, ProcessorSummary] = Map.empty[ProcessorId, ProcessorSummary],
-                                   // Hiearachy level for each processor
-                                   processorLevels: Map[ProcessorId, Int] = Map.empty[ProcessorId, Int],
-                                   historyMetricsConfig: HistoryMetricsConfig = null)
+    appType: String = "streaming",
+    appId: Int,
+    appName: String = null,
+    actorPath: String = null,
+    clock: TimeStamp = 0L,
+    status: ApplicationStatus = ApplicationStatus.Active,
+    startTime: TimeStamp = 0L,
+    uptime: TimeStamp = 0L,
+    user: String = null,
+    homeDirectory: String = "",
+    logFile: String = "",
+    dag: Graph[ProcessorId, String] = null,
+    executors: List[ExecutorBrief] = null,
+    processors: Map[ProcessorId, ProcessorSummary] = Map.empty[ProcessorId, ProcessorSummary],
+    // Hiearachy level for each processor
+    processorLevels: Map[ProcessorId, Int] = Map.empty[ProcessorId, Int],
+    historyMetricsConfig: HistoryMetricsConfig = null)
   extends AppMasterSummary
 
 case class TaskCount(count: Int)

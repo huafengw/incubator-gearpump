@@ -338,12 +338,7 @@ object AppManager {
   // The id is used in KVStore
   final val MASTER_STATE = "master_state"
 
-  // Used internally to kill AppMaster's executor, which will gracefully kill
-  // applications's all executors.
-  private[AppManager] case class KillAppMasterExecutor(appId: Int, sender: ActorRef)
-
   case class RecoverApplication(appMetaData: ApplicationMetaData)
 
-  case class MasterState(maxId: Int,
-      applicationRegistry: Map[Int, ApplicationRuntimeInfo])
+  case class MasterState(maxId: Int, applicationRegistry: Map[Int, ApplicationRuntimeInfo])
 }
