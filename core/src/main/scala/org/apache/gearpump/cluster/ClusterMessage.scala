@@ -161,7 +161,7 @@ object MasterToClient {
 
   sealed trait ApplicationResult
 
-  case class ApplicationFinished(appId: Int) extends ApplicationResult
+  case class ApplicationSucceeded(appId: Int) extends ApplicationResult
 
   case class ApplicationFailed(appId: Int, error: Throwable) extends ApplicationResult
 }

@@ -141,23 +141,24 @@ case class ExecutorJVMConfig(
     arguments: Array[String], jar: Option[AppJar], username: String,
     executorAkkaConfig: Config = ConfigFactory.empty())
 
-sealed abstract class ApplicationStatus(val status: String, val isTerminal: Boolean)
+sealed abstract class ApplicationStatus(val status: String)
   extends Serializable{
   override def toString: String = status
-
-  def isTerminalStatus: Boolean = isTerminal
 }
 
+sealed abstract class ApplicationTerminalStatus(override val status: String)
+  extends ApplicationStatus(status)
+
 object ApplicationStatus {
-  case object PENDING extends ApplicationStatus("pending", false)
+  case object PENDING extends ApplicationStatus("pending")
 
-  case object ACTIVE extends ApplicationStatus("active", false)
+  case object ACTIVE extends ApplicationStatus("active")
 
-  case object FINISHED extends ApplicationStatus("finished", true)
+  case object SUCCEEDED extends ApplicationTerminalStatus("succeeded")
 
-  case object FAILED extends ApplicationStatus("failed", true)
+  case object FAILED extends ApplicationTerminalStatus("failed")
 
-  case object TERMINATED extends ApplicationStatus("terminated", true)
+  case object TERMINATED extends ApplicationTerminalStatus("terminated")
 
-  case object NOEXIST extends ApplicationStatus("nonexist", true)
+  case object NOEXIST extends ApplicationStatus("nonexist")
 }

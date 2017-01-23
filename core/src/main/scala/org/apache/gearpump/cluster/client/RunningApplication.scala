@@ -21,13 +21,13 @@ import akka.pattern.ask
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.util.Timeout
 import org.apache.gearpump.cluster.ClientToMaster.{RegisterAppResultListener, ResolveAppId, ShutdownApplication}
-import org.apache.gearpump.cluster.MasterToClient.{ApplicationResult, ResolveAppIdResult, ShutdownApplicationResult}
+import org.apache.gearpump.cluster.MasterToClient._
 import org.apache.gearpump.cluster.client.RunningApplication.{AppResultListener, WaitUntilFinish}
 import org.apache.gearpump.util.ActorUtil
 import org.apache.gearpump.cluster.client.RunningApplication._
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -44,10 +44,14 @@ class RunningApplication(val appId: Int, master: ActorRef, timeout: Timeout,
     }
   }
 
-  def waitUnilFinish(): ApplicationResult = {
+  def waitUnilFinish(): Unit = {
     val delegator = system.actorOf(Props(new AppResultListener(appId, master)))
-    Await.result(delegator.ask(WaitUntilFinish)(INF_TIMEOUT).asInstanceOf
-      [Future[ApplicationResult]], Duration.Inf)
+    val result = ActorUtil.askActor[ApplicationResult](delegator, WaitUntilFinish, INF_TIMEOUT)
+    result match {
+      case failed: ApplicationFailed =>
+        throw failed.error
+      case _ =>
+    }
   }
 
   def askAppMaster[T](msg: Any): Future[T] = {

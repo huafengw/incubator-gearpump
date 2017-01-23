@@ -43,7 +43,7 @@ object UpickleUtil {
         str match {
           case "pending" => ApplicationStatus.PENDING
           case "active" => ApplicationStatus.ACTIVE
-          case "finished" => ApplicationStatus.FINISHED
+          case "succeeded" => ApplicationStatus.SUCCEEDED
           case "failed" => ApplicationStatus.FAILED
           case "terminated" => ApplicationStatus.TERMINATED
           case _ => ApplicationStatus.NOEXIST

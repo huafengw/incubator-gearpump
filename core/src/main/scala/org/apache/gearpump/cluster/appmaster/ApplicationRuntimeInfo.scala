@@ -21,7 +21,7 @@ package org.apache.gearpump.cluster.appmaster
 import akka.actor.ActorRef
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.gearpump.TimeStamp
-import org.apache.gearpump.cluster.ApplicationStatus
+import org.apache.gearpump.cluster.{ApplicationStatus, ApplicationTerminalStatus}
 
 /** Run time info of Application */
 case class ApplicationRuntimeInfo(
@@ -45,7 +45,7 @@ case class ApplicationRuntimeInfo(
     this.copy(startTime = timeStamp, status = ApplicationStatus.ACTIVE)
   }
 
-  def onTerminalStatus(timeStamp: TimeStamp, finalStatus: ApplicationStatus):
+  def onTerminalStatus(timeStamp: TimeStamp, finalStatus: ApplicationTerminalStatus):
     ApplicationRuntimeInfo = {
     this.copy(finishTime = timeStamp, status = finalStatus)
   }

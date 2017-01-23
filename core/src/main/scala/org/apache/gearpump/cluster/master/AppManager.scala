@@ -24,12 +24,12 @@ import com.typesafe.config.ConfigFactory
 import org.apache.gearpump._
 import org.apache.gearpump.cluster.AppMasterToMaster.{AppDataSaved, SaveAppDataFailed, _}
 import org.apache.gearpump.cluster.AppMasterToWorker._
-import org.apache.gearpump.cluster.ApplicationStatus
+import org.apache.gearpump.cluster.{ApplicationStatus, ApplicationTerminalStatus}
 import org.apache.gearpump.cluster.ClientToMaster._
 import org.apache.gearpump.cluster.MasterToAppMaster.{AppMasterData, AppMasterDataRequest, AppMastersDataRequest, _}
 import org.apache.gearpump.cluster.MasterToClient._
 import org.apache.gearpump.cluster.WorkerToAppMaster.{ShutdownExecutorFailed, _}
-import org.apache.gearpump.cluster.appmaster.{ApplicationRuntimeInfo, ApplicationMetaData}
+import org.apache.gearpump.cluster.appmaster.{ApplicationMetaData, ApplicationRuntimeInfo}
 import org.apache.gearpump.cluster.master.AppManager._
 import org.apache.gearpump.cluster.master.InMemoryKVService.{GetKVResult, PutKVResult, PutKVSuccess, _}
 import org.apache.gearpump.cluster.master.Master._
@@ -141,7 +141,8 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
 
     case ShutdownApplication(appId) =>
       LOG.info(s"App Manager Shutting down application $appId")
-      val appInfo = applicationRegistry.get(appId).filter(!_.status.isTerminalStatus)
+      val appInfo = applicationRegistry.get(appId).
+        filter(!_.status.isInstanceOf[ApplicationTerminalStatus])
       appInfo match {
         case Some(info) =>
           killAppMaster(appId, info.worker)
@@ -238,11 +239,11 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
           case ApplicationStatus.ACTIVE =>
             updatedStatus = appRuntimeInfo.onAppMasterActivated(timeStamp)
             sender ! AppMasterActivated(appId)
-          case finished@ApplicationStatus.FINISHED =>
+          case succeeded@ApplicationStatus.SUCCEEDED =>
             killAppMaster(appId, appRuntimeInfo.worker)
-            updatedStatus = appRuntimeInfo.onTerminalStatus(timeStamp, finished)
+            updatedStatus = appRuntimeInfo.onTerminalStatus(timeStamp, succeeded)
             appResultListeners.getOrElse(appId, List.empty).foreach{ client =>
-              client ! ApplicationFinished(appId)
+              client ! ApplicationSucceeded(appId)
             }
           case failed@ApplicationStatus.FAILED =>
             killAppMaster(appId, appRuntimeInfo.worker)
@@ -256,7 +257,7 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
             LOG.error(s"App $appId should not change it's status to $status")
         }
 
-        if (newStatus.isTerminalStatus) {
+        if (newStatus.isInstanceOf[ApplicationTerminalStatus]) {
           kvService ! DeleteKVGroup(appId.toString)
         }
         applicationRegistry += appId -> updatedStatus
@@ -295,7 +296,8 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
       // ShutdownApplication request
       val application = applicationRegistry.find { appInfo =>
         val (_, runtimeInfo) = appInfo
-        terminate.actor.equals(runtimeInfo.appMaster) && !runtimeInfo.status.isTerminalStatus
+        terminate.actor.equals(runtimeInfo.appMaster) &&
+          !runtimeInfo.status.isInstanceOf[ApplicationTerminalStatus]
       }
       if (application.nonEmpty) {
         val appId = application.get._1
@@ -341,7 +343,7 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
 
   private def applicationNameExist(appName: String): Boolean = {
     applicationRegistry.values.exists { info =>
-      info.appName == appName && !info.status.isTerminalStatus
+      info.appName == appName && !info.status.isInstanceOf[ApplicationTerminalStatus]
     }
   }
 
