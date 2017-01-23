@@ -160,5 +160,5 @@ object ApplicationStatus {
 
   case object TERMINATED extends ApplicationTerminalStatus("terminated")
 
-  case object NOEXIST extends ApplicationStatus("nonexist")
+  case object NONEXIST extends ApplicationStatus("nonexist")
 }

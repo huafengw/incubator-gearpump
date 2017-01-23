@@ -116,7 +116,7 @@ object ClientToMaster {
   /**
    * Register a client to wait application's result
    */
-  case class RegisterAppResultListener(appId: Int, listener: ActorRef)
+  case class RegisterAppResultListener(appId: Int)
 }
 
 object MasterToClient {

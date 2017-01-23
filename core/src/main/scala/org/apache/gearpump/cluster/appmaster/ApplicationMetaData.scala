@@ -27,4 +27,4 @@ import akka.routing.MurmurHash._
  * across the masters.
  */
 case class ApplicationMetaData(appId: Int, attemptId: Int, appDesc: AppDescription,
-    jar: Option[AppJar], username: String) extends Serializable
+    jar: Option[AppJar], username: String)

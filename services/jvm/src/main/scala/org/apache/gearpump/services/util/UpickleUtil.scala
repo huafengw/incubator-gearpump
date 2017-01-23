@@ -46,7 +46,7 @@ object UpickleUtil {
           case "succeeded" => ApplicationStatus.SUCCEEDED
           case "failed" => ApplicationStatus.FAILED
           case "terminated" => ApplicationStatus.TERMINATED
-          case _ => ApplicationStatus.NOEXIST
+          case _ => ApplicationStatus.NONEXIST
         }
     }
 

@@ -195,12 +195,12 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
             info.status, appId, info.appName, appMasterPath, workerPath,
             info.submissionTime, info.startTime, info.finishTime, info.user)
         case None =>
-          sender ! AppMasterData(ApplicationStatus.NOEXIST)
+          sender ! AppMasterData(ApplicationStatus.NONEXIST)
       }
 
-    case RegisterAppResultListener(appId, listener) =>
+    case RegisterAppResultListener(appId) =>
       val listenerList = appResultListeners.getOrElse(appId, List.empty[ActorRef])
-      appResultListeners += appId -> (listenerList :+ listener)
+      appResultListeners += appId -> (listenerList :+ sender())
   }
 
   def workerMessage: Receive = {
@@ -241,18 +241,18 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
             sender ! AppMasterActivated(appId)
           case succeeded@ApplicationStatus.SUCCEEDED =>
             killAppMaster(appId, appRuntimeInfo.worker)
-            updatedStatus = appRuntimeInfo.onTerminalStatus(timeStamp, succeeded)
+            updatedStatus = appRuntimeInfo.onFinalStatus(timeStamp, succeeded)
             appResultListeners.getOrElse(appId, List.empty).foreach{ client =>
               client ! ApplicationSucceeded(appId)
             }
           case failed@ApplicationStatus.FAILED =>
             killAppMaster(appId, appRuntimeInfo.worker)
-            updatedStatus = appRuntimeInfo.onTerminalStatus(timeStamp, failed)
+            updatedStatus = appRuntimeInfo.onFinalStatus(timeStamp, failed)
             appResultListeners.getOrElse(appId, List.empty).foreach{ client =>
               client ! ApplicationFailed(appId, error)
             }
           case terminated@ApplicationStatus.TERMINATED =>
-            updatedStatus = appRuntimeInfo.onTerminalStatus(timeStamp, terminated)
+            updatedStatus = appRuntimeInfo.onFinalStatus(timeStamp, terminated)
           case status =>
             LOG.error(s"App $appId should not change it's status to $status")
         }

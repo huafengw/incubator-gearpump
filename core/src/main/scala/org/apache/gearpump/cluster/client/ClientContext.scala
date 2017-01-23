@@ -174,7 +174,7 @@ class ClientContext(config: Config, sys: ActorSystem, _master: ActorRef) {
         // scalastyle:off println
         Console.println(s"Submit application succeed. The application id is $appId")
         // scalastyle:on println
-        new RunningApplication(appId, master, masterClientTimeout, system)
+        new RunningApplication(appId, master, masterClientTimeout)
       case Failure(ex) => throw ex
     }
     application

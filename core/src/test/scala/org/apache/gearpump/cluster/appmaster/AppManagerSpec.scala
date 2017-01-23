@@ -112,7 +112,7 @@ class AppManagerSpec extends FlatSpec with Matchers with BeforeAndAfterEach with
     assert(mockClient.receiveN(1).head.asInstanceOf[ResolveAppIdResult].appMaster.isFailure)
 
     mockClient.send(appManager, AppMasterDataRequest(1))
-    mockClient.expectMsg(AppMasterData(ApplicationStatus.NOEXIST))
+    mockClient.expectMsg(AppMasterData(ApplicationStatus.NONEXIST))
   }
 
   "AppManager" should "reject the application submission if the app name already existed" in {

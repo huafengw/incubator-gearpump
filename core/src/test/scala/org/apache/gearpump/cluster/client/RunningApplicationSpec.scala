@@ -50,7 +50,7 @@ class RunningApplicationSpec extends FlatSpec with Matchers with BeforeAndAfterA
     val errorMsg = "mock exception"
     val master = TestProbe()
     val timeout = Timeout(90, TimeUnit.SECONDS)
-    val application = new RunningApplication(1, master.ref, timeout, system)
+    val application = new RunningApplication(1, master.ref, timeout)
     Future {
       application.shutDown()
     }
@@ -74,7 +74,7 @@ class RunningApplicationSpec extends FlatSpec with Matchers with BeforeAndAfterA
     val appId = 1
     val timeout = Timeout(90, TimeUnit.SECONDS)
     val request = MockAskAppMasterRequest("request")
-    val application = new RunningApplication(appId, master.ref, timeout, system)
+    val application = new RunningApplication(appId, master.ref, timeout)
     val future = application.askAppMaster[MockAskAppMasterResponse](request)
     master.expectMsg(ResolveAppId(appId))
     master.reply(ResolveAppIdResult(Success(appMaster.ref)))
