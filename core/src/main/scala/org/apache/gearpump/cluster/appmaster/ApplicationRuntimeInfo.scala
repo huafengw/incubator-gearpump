@@ -37,7 +37,7 @@ case class ApplicationRuntimeInfo(
     config: Config = ConfigFactory.empty(),
     status: ApplicationStatus = ApplicationStatus.NOEXIST) {
 
-  def onAppMasterRegister(appMaster: ActorRef, worker: ActorRef): ApplicationRuntimeInfo = {
+  def onAppMasterRegistered(appMaster: ActorRef, worker: ActorRef): ApplicationRuntimeInfo = {
     this.copy(appMaster = appMaster, worker = worker)
   }
 

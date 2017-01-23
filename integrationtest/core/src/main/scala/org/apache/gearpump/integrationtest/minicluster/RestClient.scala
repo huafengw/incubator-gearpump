@@ -79,7 +79,7 @@ class RestClient(host: String, port: Int) {
   }
 
   def listRunningWorkers(): Array[WorkerSummary] = {
-    listWorkers().filter(_.state == ACTIVE)
+    listWorkers().filter(_.state == ACTIVE.status)
   }
 
   def listApps(): Array[AppMasterData] = {

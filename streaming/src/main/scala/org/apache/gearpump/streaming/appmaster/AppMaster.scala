@@ -22,7 +22,7 @@ import java.lang.management.ManagementFactory
 
 import akka.actor._
 import org.apache.gearpump._
-import org.apache.gearpump.cluster.AppMasterToMaster.{ActivateAppMaster, ApplicationStatusChanged}
+import org.apache.gearpump.cluster.AppMasterToMaster.ApplicationStatusChanged
 import org.apache.gearpump.cluster.ClientToMaster._
 import org.apache.gearpump.cluster.MasterToAppMaster.{AppMasterActivated, AppMasterDataDetailRequest, ReplayFromTimestampWindowTrailingEdge}
 import org.apache.gearpump.cluster.MasterToClient.{HistoryMetrics, HistoryMetricsItem, LastFailure}

@@ -167,12 +167,6 @@ object MasterToClient {
 }
 
 object AppMasterToMaster {
-
-  /**
-   * Activate the AppMaster when an application is ready to run.
-   * @param appId application id
-   */
-  case class ActivateAppMaster(appId: Int)
   
   /**
    * Register an AppMaster by providing a ActorRef, and workerInfo which is running on

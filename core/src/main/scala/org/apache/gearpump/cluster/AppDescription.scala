@@ -18,14 +18,15 @@
 
 package org.apache.gearpump.cluster
 
-import java.io._
+import java.io.Serializable
 
-import scala.reflect.ClassTag
 import akka.actor.{Actor, ActorRef, ActorSystem}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.gearpump.cluster.appmaster.WorkerInfo
 import org.apache.gearpump.cluster.scheduler.Resource
 import org.apache.gearpump.jarstore.FilePath
+
+import scala.reflect.ClassTag
 
 /**
  * This contains all information to run an application
