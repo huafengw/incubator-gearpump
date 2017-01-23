@@ -18,11 +18,11 @@
 
 package org.apache.gearpump.cluster
 
-import scala.reflect.ClassTag
+import java.io._
 
+import scala.reflect.ClassTag
 import akka.actor.{Actor, ActorRef, ActorSystem}
 import com.typesafe.config.{Config, ConfigFactory}
-
 import org.apache.gearpump.cluster.appmaster.WorkerInfo
 import org.apache.gearpump.cluster.scheduler.Resource
 import org.apache.gearpump.jarstore.FilePath
@@ -140,22 +140,23 @@ case class ExecutorJVMConfig(
     arguments: Array[String], jar: Option[AppJar], username: String,
     executorAkkaConfig: Config = ConfigFactory.empty())
 
-sealed abstract class ApplicationStatus(val status: String, isTerminal: Boolean) {
+sealed abstract class ApplicationStatus(val status: String, val isTerminal: Boolean)
+  extends Serializable{
   override def toString: String = status
 
   def isTerminalStatus: Boolean = isTerminal
 }
 
 object ApplicationStatus {
-  case object Pending extends ApplicationStatus("pending", false)
+  case object PENDING extends ApplicationStatus("pending", false)
 
-  case object Active extends ApplicationStatus("active", false)
+  case object ACTIVE extends ApplicationStatus("active", false)
 
-  case object Finished extends ApplicationStatus("finished", true)
+  case object FINISHED extends ApplicationStatus("finished", true)
 
-  case object Failed extends ApplicationStatus("failed", true)
+  case object FAILED extends ApplicationStatus("failed", true)
 
-  case object Terminated extends ApplicationStatus("terminated", true)
+  case object TERMINATED extends ApplicationStatus("terminated", true)
 
-  case object Nonexist extends ApplicationStatus("nonexist", true)
+  case object NOEXIST extends ApplicationStatus("nonexist", true)
 }

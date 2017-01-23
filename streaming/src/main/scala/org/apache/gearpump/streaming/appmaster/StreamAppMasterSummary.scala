@@ -33,7 +33,7 @@ case class StreamAppMasterSummary(
     appName: String = null,
     actorPath: String = null,
     clock: TimeStamp = 0L,
-    status: ApplicationStatus = ApplicationStatus.Active,
+    status: ApplicationStatus = ApplicationStatus.ACTIVE,
     startTime: TimeStamp = 0L,
     uptime: TimeStamp = 0L,
     user: String = null,

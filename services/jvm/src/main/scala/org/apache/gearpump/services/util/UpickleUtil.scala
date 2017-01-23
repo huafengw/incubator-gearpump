@@ -41,12 +41,12 @@ object UpickleUtil {
     upickle.default.Reader[ApplicationStatus] {
       case Js.Str(str) =>
         str match {
-          case "pending" => ApplicationStatus.Pending
-          case "active" => ApplicationStatus.Active
-          case "finished" => ApplicationStatus.Finished
-          case "failed" => ApplicationStatus.Failed
-          case "terminated" => ApplicationStatus.Terminated
-          case _ => ApplicationStatus.Nonexist
+          case "pending" => ApplicationStatus.PENDING
+          case "active" => ApplicationStatus.ACTIVE
+          case "finished" => ApplicationStatus.FINISHED
+          case "failed" => ApplicationStatus.FAILED
+          case "terminated" => ApplicationStatus.TERMINATED
+          case _ => ApplicationStatus.NOEXIST
         }
     }
 

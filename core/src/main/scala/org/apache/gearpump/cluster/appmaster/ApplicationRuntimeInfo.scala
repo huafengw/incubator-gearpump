@@ -35,14 +35,14 @@ case class ApplicationRuntimeInfo(
     startTime: TimeStamp = 0,
     finishTime: TimeStamp = 0,
     config: Config = ConfigFactory.empty(),
-    status: ApplicationStatus = ApplicationStatus.Nonexist) {
+    status: ApplicationStatus = ApplicationStatus.NOEXIST) {
 
   def onAppMasterRegister(appMaster: ActorRef, worker: ActorRef): ApplicationRuntimeInfo = {
     this.copy(appMaster = appMaster, worker = worker)
   }
 
-  def onActived(timeStamp: TimeStamp): ApplicationRuntimeInfo = {
-    this.copy(startTime = timeStamp, status = ApplicationStatus.Active)
+  def onAppMasterActivated(timeStamp: TimeStamp): ApplicationRuntimeInfo = {
+    this.copy(startTime = timeStamp, status = ApplicationStatus.ACTIVE)
   }
 
   def onTerminalStatus(timeStamp: TimeStamp, finalStatus: ApplicationStatus):

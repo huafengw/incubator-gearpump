@@ -108,7 +108,7 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
           user = username,
           submissionTime = System.currentTimeMillis(),
           config = app.clusterConfig,
-          status = ApplicationStatus.Pending)
+          status = ApplicationStatus.PENDING)
         applicationRegistry += nextAppId -> appRuntimeInfo
         val appMetaData = ApplicationMetaData(nextAppId, 0, app, jar, username)
         kvService ! PutKV(nextAppId.toString, APP_METADATA, appMetaData)
@@ -125,7 +125,7 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
           if (metaData != null) {
             LOG.info(s"Shutting down the application (restart), $appId")
             self ! ShutdownApplication(appId)
-            self.tell(SubmitApplication(metaData.app, metaData.jar, metaData.username), client)
+            self.tell(SubmitApplication(metaData.appDesc, metaData.jar, metaData.username), client)
           } else {
             client ! SubmitApplicationResult(Failure(
               new Exception(s"Failed to restart, because the application $appId does not exist.")
@@ -145,7 +145,7 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
         case Some(info) =>
           killAppMasterExecutor(appId, info.worker)
           sender ! ShutdownApplicationResult(Success(appId))
-          self ! ApplicationStatusChanged(appId, ApplicationStatus.Terminated,
+          self ! ApplicationStatusChanged(appId, ApplicationStatus.TERMINATED,
             System.currentTimeMillis(), null)
         case None =>
           val errorMsg = s"Failed to find registration information for appId: $appId"
@@ -191,7 +191,7 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
             info.status, appId, info.appName, appMasterPath, workerPath,
             info.submissionTime, info.startTime, info.finishTime, info.user)
         case None =>
-          sender ! AppMasterData(ApplicationStatus.Nonexist)
+          sender ! AppMasterData(ApplicationStatus.NOEXIST)
       }
 
     case RegisterAppResultListener(appId, listener) =>
@@ -227,24 +227,25 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
           var updatedStatus: ApplicationRuntimeInfo = null
           LOG.info(s"Application $appId change to ${newStatus.toString} at $timeStamp")
           newStatus match {
-            case ApplicationStatus.Active =>
-              updatedStatus = appRuntimeInfo.onActived(timeStamp)
+            case ApplicationStatus.ACTIVE =>
+              updatedStatus = appRuntimeInfo.onAppMasterActivated(timeStamp)
               sender ! AppMasterActivated(appId)
-            case finished@ApplicationStatus.Finished =>
+            case finished@ApplicationStatus.FINISHED =>
               killAppMasterExecutor(appId, appRuntimeInfo.worker)
               updatedStatus = appRuntimeInfo.onTerminalStatus(timeStamp, finished)
               appResultListeners.getOrElse(appId, List.empty).foreach{ client =>
                 client ! ApplicationFinished(appId)
               }
-            case failed@ApplicationStatus.Failed =>
+            case failed@ApplicationStatus.FAILED =>
               killAppMasterExecutor(appId, appRuntimeInfo.worker)
               updatedStatus = appRuntimeInfo.onTerminalStatus(timeStamp, failed)
               appResultListeners.getOrElse(appId, List.empty).foreach{ client =>
                 client ! ApplicationFailed(appId, error)
               }
-            case terminated@ApplicationStatus.Terminated =>
+            case terminated@ApplicationStatus.TERMINATED =>
               updatedStatus = appRuntimeInfo.onTerminalStatus(timeStamp, terminated)
-            case _ =>
+            case status =>
+              LOG.error(s"App $appId should not change it's status to $status")
           }
 
           if (newStatus.isTerminalStatus) {
@@ -295,7 +296,7 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
             val appMetadata = result.asInstanceOf[ApplicationMetaData]
             if (appMetadata != null) {
               LOG.info(s"Recovering application, $appId")
-              val updatedInfo = application.get._2.copy(status = ApplicationStatus.Pending)
+              val updatedInfo = application.get._2.copy(status = ApplicationStatus.PENDING)
               applicationRegistry += appId -> updatedInfo
               self ! RecoverApplication(appMetadata)
             } else {
@@ -314,7 +315,7 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
         LOG.info(s"AppManager Recovering Application $appId...")
         kvService ! PutKV(MASTER_GROUP, MASTER_STATE,
           MasterState(this.nextAppId, applicationRegistry))
-        context.actorOf(launcher.props(appId, APPMASTER_DEFAULT_EXECUTOR_ID, state.app, state.jar,
+        context.actorOf(launcher.props(appId, APPMASTER_DEFAULT_EXECUTOR_ID, state.appDesc, state.jar,
           state.username, context.parent, None), s"launcher${appId}_${Util.randInt()}")
       } else {
         LOG.error(s"Application $appId failed too many times")

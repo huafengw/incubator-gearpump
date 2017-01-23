@@ -86,7 +86,7 @@ trait TestSpecBase
   def expectAppIsRunning(appId: Int, expectedAppName: String): Unit = {
     Util.retryUntil(() => {
       val app = restClient.queryApp(appId)
-      app.status == ApplicationStatus.Active && app.appName == expectedAppName
+      app.status == ApplicationStatus.ACTIVE && app.appName == expectedAppName
     }, s"$expectedAppName is running")
   }
 }

@@ -79,7 +79,7 @@ class RestClient(host: String, port: Int) {
   }
 
   def listRunningWorkers(): Array[WorkerSummary] = {
-    listWorkers().filter(_.state == Active)
+    listWorkers().filter(_.state == ACTIVE)
   }
 
   def listApps(): Array[AppMasterData] = {
@@ -88,12 +88,12 @@ class RestClient(host: String, port: Int) {
   }
 
   def listPendingOrRunningApps(): Array[AppMasterData] = {
-    listApps().filter(app => app.status == Active
-      || app.status == Pending)
+    listApps().filter(app => app.status == ACTIVE
+      || app.status == PENDING)
   }
 
   def listRunningApps(): Array[AppMasterData] = {
-    listApps().filter(_.status == Active)
+    listApps().filter(_.status == ACTIVE)
   }
 
   def getNextAvailableAppId(): Int = {

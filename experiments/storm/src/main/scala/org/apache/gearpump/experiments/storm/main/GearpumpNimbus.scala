@@ -270,7 +270,7 @@ class GearpumpNimbus(clientContext: ClientContext, stormConf: JMap[AnyRef, AnyRe
     clientContext.listApps.appMasters.foreach { app =>
       val name = app.appName
       if (applications.contains(name)) {
-        if (app.status != ApplicationStatus.Active) {
+        if (app.status != ApplicationStatus.ACTIVE) {
           removeTopology(name)
         }
       }

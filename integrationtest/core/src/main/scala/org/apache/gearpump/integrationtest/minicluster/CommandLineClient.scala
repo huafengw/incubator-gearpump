@@ -35,7 +35,7 @@ class CommandLineClient(host: String) {
   }
 
   def listRunningApps(): Array[String] =
-    listApps().filter(_.contains(s", status: ${ApplicationStatus.Active}"))
+    listApps().filter(_.contains(s", status: ${ApplicationStatus.ACTIVE}"))
 
   def queryApp(appId: Int): String = try {
     listApps().filter(_.startsWith(s"application: $appId")).head

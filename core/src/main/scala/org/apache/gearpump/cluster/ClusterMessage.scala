@@ -225,7 +225,7 @@ object AppMasterToMaster {
       appType: String = "general",
       appName: String = null,
       actorPath: String = null,
-      status: ApplicationStatus = ApplicationStatus.Active,
+      status: ApplicationStatus = ApplicationStatus.ACTIVE,
       startTime: TimeStamp = 0L,
       uptime: TimeStamp = 0L,
       user: String = null)

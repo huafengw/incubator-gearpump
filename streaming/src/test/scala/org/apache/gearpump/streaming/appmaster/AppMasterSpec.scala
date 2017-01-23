@@ -123,7 +123,8 @@ class AppMasterSpec extends WordSpec with Matchers with BeforeAndAfterEach with 
       // triggers ResourceAllocationTimeout in ExecutorSystemScheduler
       mockMaster.reply(ResourceAllocated(Array(ResourceAllocation(Resource(2),
         mockWorker.ref, workerId))))
-      mockMaster.expectMsg(60.seconds, ShutdownApplication(appId))
+      val statusChanged = mockMaster.expectMsgType[ApplicationStatusChanged](60.seconds)
+      statusChanged.newStatus shouldBe ApplicationStatus.FAILED
     }
 
     "reschedule the resource when the worker reject to start executor" in {
@@ -247,7 +248,8 @@ class AppMasterSpec extends WordSpec with Matchers with BeforeAndAfterEach with 
 
       // fail to recover after restarting a tasks for 5 times
       appMaster.tell(MessageLoss(0, TaskId(0, 0), "message loss"), mockTask.ref)
-      mockMaster.expectMsg(60.seconds, ShutdownApplication(appId))
+      val statusChanged = mockMaster.expectMsgType[ApplicationStatusChanged](60.seconds)
+      statusChanged.newStatus shouldBe ApplicationStatus.FAILED
 
       workerSystem.terminate()
     }

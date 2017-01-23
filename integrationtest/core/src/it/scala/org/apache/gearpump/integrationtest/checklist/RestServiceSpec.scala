@@ -340,7 +340,7 @@ class RestServiceSpec extends TestSpecBase {
       Util.retryUntil(() => restClient.restartApp(originAppId), "app restarted")
       val killedApp = restClient.queryApp(originAppId)
       killedApp.appId shouldEqual originAppId
-      killedApp.status shouldEqual ApplicationStatus.Terminated
+      killedApp.status shouldEqual ApplicationStatus.TERMINATED
       val newAppId = originAppId + 1
       expectAppIsRunning(newAppId, wordCountName)
       val runningApps = restClient.listRunningApps()
@@ -359,7 +359,7 @@ class RestServiceSpec extends TestSpecBase {
 
     val actualApp = restClient.queryApp(appId)
     actualApp.appId shouldEqual appId
-    actualApp.status shouldEqual ApplicationStatus.Terminated
+    actualApp.status shouldEqual ApplicationStatus.TERMINATED
   }
 
   private def expectMetricsAvailable(condition: => Boolean, conditionDescription: String): Unit = {

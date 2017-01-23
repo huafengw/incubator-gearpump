@@ -47,7 +47,7 @@ class StabilitySpec extends TestSpecBase {
 
       // verify
       val laterAppMaster = restClient.queryStreamingAppDetail(appId)
-      laterAppMaster.status shouldEqual ApplicationStatus.Active
+      laterAppMaster.status shouldEqual ApplicationStatus.ACTIVE
       laterAppMaster.clock should be > 0L
     }
   }
@@ -69,7 +69,7 @@ class StabilitySpec extends TestSpecBase {
 
       // verify
       val laterAppMaster = restClient.queryStreamingAppDetail(appId)
-      laterAppMaster.status shouldEqual ApplicationStatus.Active
+      laterAppMaster.status shouldEqual ApplicationStatus.ACTIVE
       laterAppMaster.clock should be > 0L
     }
   }
@@ -128,7 +128,7 @@ class StabilitySpec extends TestSpecBase {
 
       // verify
       val laterAppMaster = restClient.queryStreamingAppDetail(appId)
-      laterAppMaster.status shouldEqual ApplicationStatus.Active
+      laterAppMaster.status shouldEqual ApplicationStatus.ACTIVE
       laterAppMaster.clock should be > 0L
     }
   }

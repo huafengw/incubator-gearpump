@@ -26,23 +26,5 @@ import akka.routing.MurmurHash._
  * the application, like the application jar file location. This data is distributed
  * across the masters.
  */
-case class ApplicationMetaData(appId: Int, attemptId: Int, app: AppDescription,
-    jar: Option[AppJar], username: String) extends Serializable {
-
-  override def equals(other: Any): Boolean = {
-    other match {
-      case that: ApplicationMetaData =>
-        if (appId == that.appId && attemptId == that.attemptId && app.equals(that.app)) {
-          true
-        } else {
-          false
-        }
-      case _ =>
-        false
-    }
-  }
-
-  override def hashCode: Int = {
-    extendHash(appId, attemptId, startMagicA, startMagicB)
-  }
-}
+case class ApplicationMetaData(appId: Int, attemptId: Int, appDesc: AppDescription,
+    jar: Option[AppJar], username: String) extends Serializable

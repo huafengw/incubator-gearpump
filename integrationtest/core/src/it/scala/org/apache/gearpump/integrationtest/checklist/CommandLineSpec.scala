@@ -129,7 +129,7 @@ class CommandLineSpec extends TestSpecBase {
       val actual = commandLineClient.queryApp(appId)
       actual.contains(s"application: $appId, ") &&
         actual.contains(s"name: $expectedName, ") &&
-        actual.contains(s"status: ${ApplicationStatus.Active.status}")
+        actual.contains(s"status: ${ApplicationStatus.ACTIVE.status}")
     }, "application is running")
   }
 }

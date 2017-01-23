@@ -218,7 +218,7 @@ class AppMaster(appContext: AppMasterContext, app: AppDescription) extends Appli
             appName = app.name,
             actorPath = address,
             clock = clock,
-            status = ApplicationStatus.Active,
+            status = ApplicationStatus.ACTIVE,
             startTime = startTime,
             uptime = System.currentTimeMillis() - startTime,
             user = username,
@@ -292,7 +292,7 @@ class AppMaster(appContext: AppMasterContext, app: AppDescription) extends Appli
 
   def ready: Receive = {
     case ApplicationReady =>
-      masterProxy ! ApplicationStatusChanged(appId, ApplicationStatus.Active,
+      masterProxy ! ApplicationStatusChanged(appId, ApplicationStatus.ACTIVE,
         System.currentTimeMillis(), null)
     case AppMasterActivated(id) =>
       LOG.info(s"AppMaster for app$id is activated")
@@ -303,14 +303,14 @@ class AppMaster(appContext: AppMasterContext, app: AppDescription) extends Appli
     case FailedToRecover(errorMsg) =>
       if (context.children.toList.contains(sender())) {
         LOG.error(errorMsg)
-        val failed = ApplicationStatusChanged(appId, ApplicationStatus.Failed, lastFailure.time,
+        val failed = ApplicationStatusChanged(appId, ApplicationStatus.FAILED, lastFailure.time,
           new Exception(lastFailure.error))
         masterProxy ! failed
       }
     case AllocateResourceTimeOut =>
       val errorMsg = s"Failed to allocate resource in time, shutdown application $appId"
       LOG.error(errorMsg)
-      val failed = ApplicationStatusChanged(appId, ApplicationStatus.Failed,
+      val failed = ApplicationStatusChanged(appId, ApplicationStatus.FAILED,
         System.currentTimeMillis(), new Exception(lastFailure.error))
       masterProxy ! failed
       context.stop(self)

@@ -83,7 +83,7 @@ class AppMasterServiceSpec extends FlatSpec with ScalatestRouteTest
           sender ! ResolveAppIdResult(Success(mockAppMaster.ref))
           KeepRunning
         case AppMasterDataRequest(appId, _) =>
-          sender ! AppMasterData(ApplicationStatus.Active)
+          sender ! AppMasterData(ApplicationStatus.ACTIVE)
           KeepRunning
         case QueryAppMasterConfig(appId) =>
           sender ! AppMasterConfig(null)

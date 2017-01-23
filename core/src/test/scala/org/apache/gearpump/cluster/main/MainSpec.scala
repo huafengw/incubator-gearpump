@@ -108,7 +108,7 @@ class MainSpec extends FlatSpec with Matchers with BeforeAndAfterEach with Maste
 
     masterReceiver.expectMsg(PROCESS_BOOT_TIME, AppMastersDataRequest)
     masterReceiver.reply(AppMastersData(List(AppMasterData(
-      ApplicationStatus.Active, 0, "appName"))))
+      ApplicationStatus.ACTIVE, 0, "appName"))))
   }
 
   "Kill" should "be started without exception" in {

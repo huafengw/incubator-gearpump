@@ -78,7 +78,7 @@ object WordCount extends AkkaApp with ArgumentsParser {
     }
 
     val app = application(config, context.system)
-    context.submit(app).waitUnilFinish()
+    context.submit(app)
 
     if (debugMode) {
       Thread.sleep(sleepSeconds * 1000) // Sleeps for 30 seconds for debugging.

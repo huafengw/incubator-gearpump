@@ -76,7 +76,7 @@ class AppManagerSpec extends FlatSpec with Matchers with BeforeAndAfterEach with
     appMaster.send(appManager, register)
     appMaster.expectMsgType[AppMasterRegistered]
 
-    val active = ApplicationStatusChanged(appId, ApplicationStatus.Active, 0, null)
+    val active = ApplicationStatusChanged(appId, ApplicationStatus.ACTIVE, 0, null)
     appMaster.send(appManager, active)
     appMaster.expectMsgType[AppMasterActivated]
   }
@@ -112,7 +112,7 @@ class AppManagerSpec extends FlatSpec with Matchers with BeforeAndAfterEach with
     assert(mockClient.receiveN(1).head.asInstanceOf[ResolveAppIdResult].appMaster.isFailure)
 
     mockClient.send(appManager, AppMasterDataRequest(1))
-    mockClient.expectMsg(AppMasterData(ApplicationStatus.Nonexist))
+    mockClient.expectMsg(AppMasterData(ApplicationStatus.NOEXIST))
   }
 
   "AppManager" should "reject the application submission if the app name already existed" in {
