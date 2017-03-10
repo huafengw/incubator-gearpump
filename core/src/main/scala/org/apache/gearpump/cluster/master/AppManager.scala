@@ -231,8 +231,7 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
       timeStamp: TimeStamp, error: Throwable): Unit = {
     applicationRegistry.get(appId) match {
       case Some(appRuntimeInfo) =>
-        // A dead application should not be able to update status
-        if (!appRuntimeInfo.status.isInstanceOf[ApplicationTerminalStatus]) {
+        if (appRuntimeInfo.status.canTransitTo(newStatus)) {
           var updatedStatus: ApplicationRuntimeInfo = null
           LOG.info(s"Application $appId change to ${newStatus.toString} at $timeStamp")
           newStatus match {
