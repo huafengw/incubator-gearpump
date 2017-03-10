@@ -23,8 +23,8 @@ class ApplicationStatusSpec extends FlatSpec with Matchers with BeforeAndAfterEa
 
   "ApplicationStatus" should "check status transition properly" in {
     val pending = ApplicationStatus.PENDING
-    assert(!pending.canTransitTo(ApplicationStatus.PENDING))
     assert(!pending.canTransitTo(ApplicationStatus.NONEXIST))
+    assert(pending.canTransitTo(ApplicationStatus.PENDING))
     assert(pending.canTransitTo(ApplicationStatus.ACTIVE))
     assert(pending.canTransitTo(ApplicationStatus.SUCCEEDED))
 
