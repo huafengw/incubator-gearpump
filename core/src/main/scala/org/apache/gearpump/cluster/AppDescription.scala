@@ -158,7 +158,7 @@ sealed abstract class ApplicationTerminalStatus(override val status: String)
 object ApplicationStatus {
   case object PENDING extends ApplicationStatus("pending") {
     override def canTransitTo(newStatus: ApplicationStatus): Boolean = {
-      !newStatus.equals(NONEXIST) && !newStatus.equals(PENDING)
+      !newStatus.equals(NONEXIST)
     }
   }
 

@@ -261,6 +261,9 @@ private[cluster] class AppManager(kvService: ActorRef, launcher: AppMasterLaunch
           }
           applicationRegistry += appId -> updatedStatus
           kvService ! PutKV(MASTER_GROUP, MASTER_STATE, MasterState(nextAppId, applicationRegistry))
+        } else {
+          LOG.error(s"Application $appId tries to switch status ${appRuntimeInfo.status} " +
+            s"to $newStatus")
         }
       case None =>
         LOG.error(s"Can not find application runtime info for appId $appId when it's " +
