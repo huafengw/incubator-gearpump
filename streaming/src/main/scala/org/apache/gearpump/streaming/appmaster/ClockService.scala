@@ -262,7 +262,7 @@ class ClockService(
       sender ! CheckpointClock(minCheckpointClock)
 
     // Please do not remove the `getStalling`
-    case getStalling: GetStallingTasks =>
+    case GetStallingTasks =>
       sender ! StallingTasks(healthChecker.getReport.stallingTasks)
 
     case ChangeToNewDAG(newDag) =>
