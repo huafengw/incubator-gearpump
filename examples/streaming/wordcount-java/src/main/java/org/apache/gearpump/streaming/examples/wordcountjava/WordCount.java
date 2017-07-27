@@ -22,7 +22,8 @@ import com.typesafe.config.Config;
 import org.apache.gearpump.cluster.ClusterConfig;
 import org.apache.gearpump.cluster.UserConfig;
 import org.apache.gearpump.cluster.client.ClientContext;
-import org.apache.gearpump.cluster.embedded.EmbeddedCluster;
+import org.apache.gearpump.cluster.client.RuntimeEnvironment;
+import org.apache.gearpump.cluster.embedded.LocalRuntimeEnvironemnt;
 import org.apache.gearpump.streaming.partitioner.HashPartitioner;
 import org.apache.gearpump.streaming.partitioner.Partitioner;
 import org.apache.gearpump.streaming.javaapi.Graph;
@@ -37,7 +38,6 @@ public class WordCount {
   }
 
   public static void main(Config akkaConf, String[] args) throws InterruptedException {
-
     // For split task, we config to create two tasks
     int splitTaskNumber = 2;
     Processor split = new Processor(Split.class).withParallelism(splitTaskNumber);
@@ -57,25 +57,15 @@ public class WordCount {
     UserConfig conf = UserConfig.empty();
     StreamApplication app = new StreamApplication("wordcountJava", conf, graph);
 
-    EmbeddedCluster localCluster = null;
-
+    RuntimeEnvironment runtimeEnvironment = null;
     Boolean debugMode = System.getProperty("DEBUG") != null;
-
     if (debugMode) {
-      localCluster = new EmbeddedCluster(akkaConf);
-      localCluster.start();
-    }
-
-    ClientContext masterClient = null;
-
-    if (localCluster != null) {
-      masterClient = localCluster.newClientContext();
+      runtimeEnvironment = new LocalRuntimeEnvironemnt();
     } else {
-      // create master client
-      // It will read the master settings under gearpump.cluster.masters
-      masterClient = new ClientContext(akkaConf);
+      runtimeEnvironment = RuntimeEnvironment.get();
     }
 
+    ClientContext masterClient = runtimeEnvironment.newClientContext(akkaConf);
     masterClient.submit(app);
 
     if (debugMode) {
@@ -83,9 +73,5 @@ public class WordCount {
     }
 
     masterClient.close();
-
-    if (localCluster != null) {
-      localCluster.stop();
-    }
   }
 }

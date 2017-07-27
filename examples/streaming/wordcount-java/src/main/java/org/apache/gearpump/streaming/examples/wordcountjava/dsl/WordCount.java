@@ -24,6 +24,7 @@ import org.apache.gearpump.Message;
 import org.apache.gearpump.cluster.ClusterConfig;
 import org.apache.gearpump.cluster.UserConfig;
 import org.apache.gearpump.cluster.client.ClientContext;
+import org.apache.gearpump.cluster.client.RuntimeEnvironment;
 import org.apache.gearpump.streaming.dsl.javaapi.JavaStream;
 import org.apache.gearpump.streaming.dsl.javaapi.JavaStreamApp;
 import org.apache.gearpump.streaming.dsl.api.functions.MapFunction;
@@ -46,7 +47,7 @@ public class WordCount {
   }
 
   public static void main(Config akkaConf, String[] args) throws InterruptedException {
-    ClientContext context = new ClientContext(akkaConf);
+    ClientContext context = RuntimeEnvironment.get().newClientContext(akkaConf);
     JavaStreamApp app = new JavaStreamApp("JavaDSL", context, UserConfig.empty());
 
     JavaStream<String> sentence = app.source(new StringSource("This is a good start, bingo!! bingo!!"),

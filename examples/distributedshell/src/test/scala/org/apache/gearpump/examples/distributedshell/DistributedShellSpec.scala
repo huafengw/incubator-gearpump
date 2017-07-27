@@ -19,11 +19,9 @@ package org.apache.gearpump.examples.distributedshell
 
 import scala.concurrent.Future
 import scala.util.Success
-
 import com.typesafe.config.Config
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{BeforeAndAfter, Matchers, PropSpec}
-
 import org.apache.gearpump.cluster.ClientToMaster.SubmitApplication
 import org.apache.gearpump.cluster.MasterToClient.SubmitApplicationResult
 import org.apache.gearpump.cluster.{MasterHarness, TestUtil}

@@ -23,15 +23,14 @@ import java.util.Properties
 import akka.actor.ActorSystem
 import org.apache.gearpump.streaming.kafka.util.KafkaConfig
 import org.apache.hadoop.conf.Configuration
-
 import org.apache.gearpump.cluster.UserConfig
-import org.apache.gearpump.cluster.client.ClientContext
+import org.apache.gearpump.cluster.client.{ClientContext, RuntimeEnvironment}
 import org.apache.gearpump.cluster.main.{ArgumentsParser, CLIOption, ParseResult}
 import org.apache.gearpump.streaming.partitioner.HashPartitioner
 import org.apache.gearpump.streaming.examples.state.processor.CountProcessor
 import org.apache.gearpump.streaming.hadoop.HadoopCheckpointStoreFactory
 import org.apache.gearpump.streaming.hadoop.lib.rotation.FileSizeRotation
-import org.apache.gearpump.streaming.kafka.{KafkaStoreFactory, KafkaSink, KafkaSource}
+import org.apache.gearpump.streaming.kafka.{KafkaSink, KafkaSource, KafkaStoreFactory}
 import org.apache.gearpump.streaming.sink.DataSinkProcessor
 import org.apache.gearpump.streaming.source.DataSourceProcessor
 import org.apache.gearpump.streaming.state.impl.PersistentStateConfig
@@ -98,11 +97,10 @@ object MessageCountApp extends AkkaApp with ArgumentsParser {
   }
 
   def main(akkaConf: Config, args: Array[String]): Unit = {
-
     val config = parse(args)
-    val context = ClientContext(akkaConf)
+    val context = RuntimeEnvironment.get().newClientContext(akkaConf)
     implicit val system = context.system
-    val appId = context.submit(application(config))
+    context.submit(application(config))
     context.close()
   }
 }

@@ -17,12 +17,11 @@
  */
 package org.apache.gearpump.experiments.distributeservice
 
-import org.slf4j.Logger
-
-import org.apache.gearpump.cluster.client.ClientContext
+import org.apache.gearpump.cluster.client.RuntimeEnvironment
 import org.apache.gearpump.cluster.main.{ArgumentsParser, CLIOption}
 import org.apache.gearpump.cluster.{Application, UserConfig}
 import org.apache.gearpump.util.{AkkaApp, LogUtil}
+import org.slf4j.Logger
 
 /** Demo app to remotely deploy and start system service on machines in the cluster */
 object DistributeService extends AkkaApp with ArgumentsParser {
@@ -32,7 +31,7 @@ object DistributeService extends AkkaApp with ArgumentsParser {
 
   override def main(akkaConf: Config, args: Array[String]): Unit = {
     LOG.info(s"Distribute Service submitting application...")
-    val context = ClientContext(akkaConf)
+    val context = RuntimeEnvironment.get().newClientContext(akkaConf)
     val app = context.submit(Application[DistServiceAppMaster]("DistributedService",
       UserConfig.empty))
     context.close()

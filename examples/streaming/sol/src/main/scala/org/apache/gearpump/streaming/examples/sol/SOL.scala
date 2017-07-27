@@ -19,9 +19,8 @@
 package org.apache.gearpump.streaming.examples.sol
 
 import org.slf4j.Logger
-
 import org.apache.gearpump.cluster.UserConfig
-import org.apache.gearpump.cluster.client.ClientContext
+import org.apache.gearpump.cluster.client.{RemoteRuntimeEnvironment, RuntimeEnvironment}
 import org.apache.gearpump.cluster.main.{ArgumentsParser, CLIOption, ParseResult}
 import org.apache.gearpump.streaming.partitioner.ShufflePartitioner
 import org.apache.gearpump.streaming.{Processor, StreamApplication}
@@ -61,8 +60,8 @@ object SOL extends AkkaApp with ArgumentsParser {
 
   override def main(akkaConf: Config, args: Array[String]): Unit = {
     val config = parse(args)
-    val context = ClientContext(akkaConf)
-    val appId = context.submit(application(config))
+    val context = RuntimeEnvironment.get().newClientContext(akkaConf)
+    context.submit(application(config))
     context.close()
   }
 }

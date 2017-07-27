@@ -36,27 +36,21 @@ import org.apache.gearpump.util.{LogUtil, Util}
  * Create a in-process cluster with single worker
  */
 class EmbeddedCluster(inputConfig: Config) {
-
-  private val workerCount: Int = 1
-  private var _master: ActorRef = null
-  private var _system: ActorSystem = null
-  private var _config: Config = null
-
   private val LOG = LogUtil.getLogger(getClass)
+  private val workerCount: Int = 1
+  var _master: ActorRef = _
+  var _system: ActorSystem = _
+  var _config: Config = _
 
   def start(): Unit = {
     val port = Util.findFreePort().get
-    val akkaConf = getConfig(inputConfig, port)
-    _config = akkaConf
-    val system = ActorSystem(MASTER, akkaConf)
-
-    val master = system.actorOf(Props[MasterActor], MASTER)
+    this._config = getConfig(inputConfig, port)
+    this._system = ActorSystem(MASTER, _config)
+    this._master = _system.actorOf(Props[MasterActor], MASTER)
 
     0.until(workerCount).foreach { id =>
-      system.actorOf(Props(classOf[WorkerActor], master), classOf[WorkerActor].getSimpleName + id)
+      _system.actorOf(Props(classOf[WorkerActor], _master), classOf[WorkerActor].getSimpleName + id)
     }
-    this._master = master
-    this._system = system
 
     LOG.info("=================================")
     LOG.info("Local Cluster is started at: ")

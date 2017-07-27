@@ -20,8 +20,8 @@ package org.apache.gearpump.streaming.examples.wordcount
 
 import akka.actor.ActorSystem
 import org.apache.gearpump.cluster.UserConfig
-import org.apache.gearpump.cluster.client.ClientContext
-import org.apache.gearpump.cluster.embedded.EmbeddedCluster
+import org.apache.gearpump.cluster.client.{ClientContext, RuntimeEnvironment}
+import org.apache.gearpump.cluster.embedded.LocalRuntimeEnvironemnt
 import org.apache.gearpump.cluster.main.{ArgumentsParser, CLIOption, ParseResult}
 import org.apache.gearpump.streaming.partitioner.HashPartitioner
 import org.apache.gearpump.streaming.source.DataSourceProcessor
@@ -64,18 +64,13 @@ object WordCount extends AkkaApp with ArgumentsParser {
     val debugMode = config.getBoolean("debug")
     val sleepSeconds = config.getInt("sleep")
 
-    val localCluster = if (debugMode) {
-      val cluster = new EmbeddedCluster(akkaConf: Config)
-      cluster.start()
-      Some(cluster)
+    val runtimeEnv = if (debugMode) {
+      new LocalRuntimeEnvironemnt
     } else {
-      None
+      RuntimeEnvironment.get()
     }
 
-    val context: ClientContext = localCluster match {
-      case Some(local) => local.newClientContext
-      case None => ClientContext(akkaConf)
-    }
+    val context: ClientContext = runtimeEnv.newClientContext(akkaConf)
 
     val app = application(config, context.system)
     context.submit(app)
@@ -85,7 +80,6 @@ object WordCount extends AkkaApp with ArgumentsParser {
     }
 
     context.close()
-    localCluster.map(_.stop())
   }
 }
 
