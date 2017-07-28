@@ -45,10 +45,6 @@ import scala.util.{Failure, Success, Try}
  * TODO: add interface to query master here
  */
 class ClientContext(config: Config, sys: ActorSystem, _master: ActorRef) {
-  def this(system: ActorSystem) = {
-    this(system.settings.config, system, null)
-  }
-
   def this(config: Config) = {
     this(config, null, null)
   }
@@ -184,13 +180,7 @@ object ClientContext {
 
   def apply(): ClientContext = apply(ClusterConfig.default())
 
-  def apply(system: ActorSystem): ClientContext = {
-    apply(ClusterConfig.default(), system, null)
-  }
-
-  def apply(config: Config): ClientContext = apply(config, null, null)
-
-  def apply(config: Config, system: ActorSystem, master: ActorRef): ClientContext = {
-    new ClientContext(config, system, master)
+  def apply(config: Config): ClientContext = {
+    RuntimeEnvironment.newClientContext(config)
   }
 }

@@ -56,7 +56,7 @@ object RemoteGraph {
 
     private val context: ClientContext = local match {
       case Some(l) => l.newClientContext
-      case None => ClientContext(system)
+      case None => ClientContext(null)
     }
 
     override def materialize(subGraph: SubGraph,

@@ -66,7 +66,7 @@ class EmbeddedCluster(inputConfig: Config) {
   }
 
   def newClientContext: ClientContext = {
-    ClientContext(config, system, master)
+    new ClientContext(config, system, master)
   }
 
   def stop(): Unit = {

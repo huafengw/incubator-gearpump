@@ -18,15 +18,16 @@
 
 package org.apache.gearpump.streaming.examples.complexdag
 
+import org.slf4j.Logger
+
 import org.apache.gearpump.cluster.UserConfig
-import org.apache.gearpump.cluster.client.RuntimeEnvironment
+import org.apache.gearpump.cluster.client.ClientContext
 import org.apache.gearpump.cluster.main.{ArgumentsParser, CLIOption, ParseResult}
 import org.apache.gearpump.streaming.partitioner.HashPartitioner
 import org.apache.gearpump.streaming.task.TaskContext
 import org.apache.gearpump.streaming.{Processor, StreamApplication}
 import org.apache.gearpump.util.Graph.{Node => GraphNode}
 import org.apache.gearpump.util.{AkkaApp, Graph, LogUtil}
-import org.slf4j.Logger
 
 case class Source_0(_context: TaskContext, _conf: UserConfig) extends Source(_context, _conf)
 case class Source_1(_context: TaskContext, _conf: UserConfig) extends Source(_context, _conf)
@@ -104,8 +105,8 @@ object Dag extends AkkaApp with ArgumentsParser {
 
   override def main(akkaConf: Config, args: Array[String]): Unit = {
     val userConf = parse(args)
-    val context = RuntimeEnvironment.get().newClientContext(akkaConf)
-    context.submit(application(userConf))
+    val context = ClientContext(akkaConf)
+    val appId = context.submit(application(userConf))
     context.close()
   }
 }

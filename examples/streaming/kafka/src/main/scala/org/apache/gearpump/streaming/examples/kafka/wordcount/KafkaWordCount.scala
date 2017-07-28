@@ -24,8 +24,9 @@ import akka.actor.ActorSystem
 import kafka.api.OffsetRequest
 import org.apache.gearpump.streaming.kafka.util.KafkaConfig
 import org.slf4j.Logger
+
 import org.apache.gearpump.cluster.UserConfig
-import org.apache.gearpump.cluster.client.RuntimeEnvironment
+import org.apache.gearpump.cluster.client.ClientContext
 import org.apache.gearpump.cluster.main.{ArgumentsParser, CLIOption, ParseResult}
 import org.apache.gearpump.streaming.partitioner.HashPartitioner
 import org.apache.gearpump.streaming.kafka._
@@ -79,8 +80,8 @@ object KafkaWordCount extends AkkaApp with ArgumentsParser {
 
   override def main(akkaConf: Config, args: Array[String]): Unit = {
     val config = parse(args)
-    val context = RuntimeEnvironment.get().newClientContext(akkaConf)
-    context.submit(application(config, context.system))
+    val context = ClientContext(akkaConf)
+    val appId = context.submit(application(config, context.system))
     context.close()
   }
 }

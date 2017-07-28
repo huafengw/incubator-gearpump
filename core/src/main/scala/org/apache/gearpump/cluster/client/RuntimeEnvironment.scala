@@ -38,6 +38,10 @@ object RuntimeEnvironment {
     Option(envInstance).getOrElse(new LocalRuntimeEnvironemnt)
   }
 
+  def newClientContext(akkaConf: Config): ClientContext = {
+    get().newClientContext(akkaConf)
+  }
+
   def setRuntimeEnv(env: RuntimeEnvironment): Unit = {
     envInstance = env
   }

@@ -17,11 +17,12 @@
  */
 package org.apache.gearpump.examples.distributedshell
 
-import org.apache.gearpump.cluster.client.RuntimeEnvironment
+import org.slf4j.Logger
+
+import org.apache.gearpump.cluster.client.ClientContext
 import org.apache.gearpump.cluster.main.{ArgumentsParser, CLIOption}
 import org.apache.gearpump.cluster.{Application, UserConfig}
 import org.apache.gearpump.util.{AkkaApp, LogUtil}
-import org.slf4j.Logger
 
 /** Demo application to distribute and execute shell command on all machines of the cluster */
 object DistributedShell extends AkkaApp with ArgumentsParser {
@@ -31,7 +32,7 @@ object DistributedShell extends AkkaApp with ArgumentsParser {
 
   override def main(akkaConf: Config, args: Array[String]): Unit = {
     LOG.info(s"Distributed shell submitting application...")
-    val context = RuntimeEnvironment.get().newClientContext(akkaConf)
+    val context = ClientContext(akkaConf)
     val app = context.submit(Application[DistShellAppMaster]("DistributedShell",
     UserConfig.empty))
     context.close()

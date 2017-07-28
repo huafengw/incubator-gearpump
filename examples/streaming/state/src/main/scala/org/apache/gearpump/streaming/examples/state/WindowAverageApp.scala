@@ -20,8 +20,9 @@ package org.apache.gearpump.streaming.examples.state
 
 import akka.actor.ActorSystem
 import org.apache.hadoop.conf.Configuration
+
 import org.apache.gearpump.cluster.UserConfig
-import org.apache.gearpump.cluster.client.{ClientContext, RuntimeEnvironment}
+import org.apache.gearpump.cluster.client.ClientContext
 import org.apache.gearpump.cluster.main.{ArgumentsParser, CLIOption, ParseResult}
 import org.apache.gearpump.streaming.partitioner.HashPartitioner
 import org.apache.gearpump.streaming.examples.state.processor.{NumberGeneratorProcessor, WindowAverageProcessor}
@@ -62,10 +63,10 @@ object WindowAverageApp extends AkkaApp with ArgumentsParser {
 
   override def main(akkaConf: Config, args: Array[String]): Unit = {
     val config = parse(args)
-    val context = RuntimeEnvironment.get().newClientContext(akkaConf)
+    val context = ClientContext(akkaConf)
 
     implicit val system = context.system
-    context.submit(application(config))
+    val appId = context.submit(application(config))
     context.close()
   }
 }
