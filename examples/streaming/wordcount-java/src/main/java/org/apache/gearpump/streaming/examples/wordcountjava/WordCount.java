@@ -57,20 +57,8 @@ public class WordCount {
     UserConfig conf = UserConfig.empty();
     StreamApplication app = new StreamApplication("wordcountJava", conf, graph);
 
-    RuntimeEnvironment runtimeEnvironment = null;
-    Boolean debugMode = System.getProperty("DEBUG") != null;
-    if (debugMode) {
-      runtimeEnvironment = new LocalRuntimeEnvironemnt();
-    } else {
-      runtimeEnvironment = RuntimeEnvironment.get();
-    }
-
-    ClientContext masterClient = runtimeEnvironment.newClientContext(akkaConf);
+    ClientContext masterClient = RuntimeEnvironment.get().newClientContext(akkaConf);
     masterClient.submit(app);
-
-    if (debugMode) {
-      Thread.sleep(30 * 1000); // sleep for 30 seconds.
-    }
 
     masterClient.close();
   }

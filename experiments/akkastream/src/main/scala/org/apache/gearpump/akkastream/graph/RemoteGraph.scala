@@ -49,9 +49,7 @@ object RemoteGraph {
   class RemoteGraphMaterializer(useInProcessCluster: Boolean, system: ActorSystem)
     extends SubGraphMaterializer {
     private val local = if (useInProcessCluster) {
-      val cluster = EmbeddedCluster()
-      cluster.start()
-      Some(cluster)
+      Some(EmbeddedCluster())
     } else {
       None
     }

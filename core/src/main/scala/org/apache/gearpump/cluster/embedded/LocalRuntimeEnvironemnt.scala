@@ -19,17 +19,21 @@ package org.apache.gearpump.cluster.embedded
 
 import com.typesafe.config.Config
 import org.apache.gearpump.cluster.client.{ClientContext, RuntimeEnvironment}
+import org.apache.gearpump.cluster.embedded.LocalRuntimeEnvironemnt.LocalClientContext
 
 class LocalRuntimeEnvironemnt extends RuntimeEnvironment {
-
   override def newClientContext(akkaConf: Config): ClientContext = {
-    val cluster = new EmbeddedCluster(akkaConf)
-    cluster.start()
-    new LocalClientContext(cluster)
+    new LocalClientContext(akkaConf)
   }
+}
 
-  class LocalClientContext(cluster: EmbeddedCluster)
-    extends ClientContext(cluster._config, cluster._system, cluster._master) {
+object LocalRuntimeEnvironemnt {
+  class LocalClientContext private (cluster: EmbeddedCluster)
+    extends ClientContext(cluster.config, cluster.system, cluster.master) {
+
+    def this(akkaConf: Config) {
+      this(new EmbeddedCluster(akkaConf))
+    }
 
     override def close(): Unit = {
       super.close()

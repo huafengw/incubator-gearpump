@@ -38,25 +38,19 @@ import org.apache.gearpump.util.{LogUtil, Util}
 class EmbeddedCluster(inputConfig: Config) {
   private val LOG = LogUtil.getLogger(getClass)
   private val workerCount: Int = 1
-  var _master: ActorRef = _
-  var _system: ActorSystem = _
-  var _config: Config = _
+  private val port = Util.findFreePort().get
+  private[embedded] val config: Config = getConfig(inputConfig, port)
+  private[embedded] val system: ActorSystem = ActorSystem(MASTER, config)
+  private[embedded] val master: ActorRef = system.actorOf(Props[MasterActor], MASTER)
 
-  def start(): Unit = {
-    val port = Util.findFreePort().get
-    this._config = getConfig(inputConfig, port)
-    this._system = ActorSystem(MASTER, _config)
-    this._master = _system.actorOf(Props[MasterActor], MASTER)
-
-    0.until(workerCount).foreach { id =>
-      _system.actorOf(Props(classOf[WorkerActor], _master), classOf[WorkerActor].getSimpleName + id)
-    }
-
-    LOG.info("=================================")
-    LOG.info("Local Cluster is started at: ")
-    LOG.info(s"                 127.0.0.1:$port")
-    LOG.info(s"To see UI, run command: services -master 127.0.0.1:$port")
+  0.until(workerCount).foreach { id =>
+    system.actorOf(Props(classOf[WorkerActor], master), classOf[WorkerActor].getSimpleName + id)
   }
+
+  LOG.info("=================================")
+  LOG.info("Local Cluster is started at: ")
+  LOG.info(s"                 127.0.0.1:$port")
+  LOG.info(s"To see UI, run command: services -master 127.0.0.1:$port")
 
   private def getConfig(inputConfig: Config, port: Int): Config = {
     val config = inputConfig.
@@ -72,13 +66,13 @@ class EmbeddedCluster(inputConfig: Config) {
   }
 
   def newClientContext: ClientContext = {
-    ClientContext(_config, _system, _master)
+    ClientContext(config, system, master)
   }
 
   def stop(): Unit = {
-    _system.stop(_master)
-    _system.terminate()
-    Await.result(_system.whenTerminated, Duration.Inf)
+    system.stop(master)
+    system.terminate()
+    Await.result(system.whenTerminated, Duration.Inf)
   }
 }
 

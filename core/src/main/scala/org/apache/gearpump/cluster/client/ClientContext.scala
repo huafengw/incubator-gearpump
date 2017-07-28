@@ -55,7 +55,6 @@ class ClientContext(config: Config, sys: ActorSystem, _master: ActorRef) {
 
   private val LOG: Logger = LogUtil.getLogger(getClass)
   implicit val system = Option(sys).getOrElse(ActorSystem(s"client${Util.randInt()}", config))
-  LOG.info(s"Starting system ${system.name}")
   private val jarStoreClient = new JarStoreClient(config, system)
   private val masterClientTimeout = {
     val timeout = Try(config.getInt(Constants.GEARPUMP_MASTERCLIENT_TIMEOUT)).getOrElse(90)
@@ -183,17 +182,13 @@ class ClientContext(config: Config, sys: ActorSystem, _master: ActorRef) {
 
 object ClientContext {
 
-  def apply(): ClientContext = new ClientContext(ClusterConfig.default(), null, null)
+  def apply(): ClientContext = apply(ClusterConfig.default())
 
   def apply(system: ActorSystem): ClientContext = {
-    new ClientContext(ClusterConfig.default(), system, null)
+    apply(ClusterConfig.default(), system, null)
   }
 
-  def apply(system: ActorSystem, master: ActorRef): ClientContext = {
-    new ClientContext(ClusterConfig.default(), system, master)
-  }
-
-  def apply(config: Config): ClientContext = new ClientContext(config, null, null)
+  def apply(config: Config): ClientContext = apply(config, null, null)
 
   def apply(config: Config, system: ActorSystem, master: ActorRef): ClientContext = {
     new ClientContext(config, system, master)
