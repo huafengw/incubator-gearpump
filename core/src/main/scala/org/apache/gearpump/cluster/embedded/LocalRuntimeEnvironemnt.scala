@@ -21,6 +21,11 @@ import com.typesafe.config.Config
 import org.apache.gearpump.cluster.client.{ClientContext, RuntimeEnvironment}
 import org.apache.gearpump.cluster.embedded.LocalRuntimeEnvironemnt.LocalClientContext
 
+/**
+ * The LocalRuntimeEnvironemnt is initiated when user trying to launch their application
+ * from IDE. It will create an embedded cluster and user's applcaition will run in a single
+ * local process.
+ */
 class LocalRuntimeEnvironemnt extends RuntimeEnvironment {
   override def newClientContext(akkaConf: Config): ClientContext = {
     new LocalClientContext(akkaConf)

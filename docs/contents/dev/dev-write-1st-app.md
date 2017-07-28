@@ -9,7 +9,7 @@ We'll use the classical [wordcount](https://github.com/apache/incubator-gearpump
 	  override val options: Array[(String, CLIOption[Any])] = Array.empty
 	
 	  override def main(akkaConf: Config, args: Array[String]): Unit = {
-	    val context = RuntimeEnvironment.get().newClientContext(akkaConf)
+	    val context = ClientContext(akkaConf)
 	    val app = StreamApp("dsl", context)
 	    val data = "This is a good start, bingo!! bingo!!"
 	

@@ -21,10 +21,17 @@ package org.apache.gearpump.cluster.client
 import com.typesafe.config.Config
 import org.apache.gearpump.cluster.embedded.LocalRuntimeEnvironemnt
 
+/**
+ * The RuntimeEnvironment is the context decides where an application is submitted to.
+ */
 abstract class RuntimeEnvironment {
   def newClientContext(akkaConf: Config): ClientContext
 }
 
+/**
+ * Usually RemoteRuntimeEnvironment is the default enviroment when user using command line
+ * to submit application. It will connect to the right remote Master.
+ */
 class RemoteRuntimeEnvironment extends RuntimeEnvironment {
   override def newClientContext(akkaConf: Config): ClientContext = {
     new ClientContext(akkaConf)
