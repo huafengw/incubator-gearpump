@@ -19,7 +19,7 @@
 package org.apache.gearpump.cluster.client
 
 import com.typesafe.config.Config
-import org.apache.gearpump.cluster.embedded.LocalRuntimeEnvironemnt
+import org.apache.gearpump.cluster.embedded.EmbeddedRuntimeEnvironemnt
 
 /**
  * The RuntimeEnvironment is the context decides where an application is submitted to.
@@ -42,7 +42,7 @@ object RuntimeEnvironment {
   private var envInstance: RuntimeEnvironment = _
 
   def get() : RuntimeEnvironment = {
-    Option(envInstance).getOrElse(new LocalRuntimeEnvironemnt)
+    Option(envInstance).getOrElse(new EmbeddedRuntimeEnvironemnt)
   }
 
   def newClientContext(akkaConf: Config): ClientContext = {
