@@ -22,8 +22,8 @@ import org.apache.gearpump.cluster.client.{ClientContext, RuntimeEnvironment}
 import org.apache.gearpump.cluster.embedded.EmbeddedRuntimeEnvironment.EmbeddedClientContext
 
 /**
- * The EmbeddedRuntimeEnvironemnt is initiated when user trying to launch their application
- * from IDE. It will create an embedded cluster and user's applcaition will run in a single
+ * The EmbeddedRuntimeEnvironment is initiated when user trying to launch their application
+ * from IDE. It will create an embedded cluster and user's application will run in a single
  * local process.
  */
 class EmbeddedRuntimeEnvironment extends RuntimeEnvironment {
