@@ -28,6 +28,8 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
 
   private val _vertices = mutable.Set.empty[N]
   private val _edges = mutable.Set.empty[(N, E, N)]
+  private var _outEdges = mutable.Map.empty[N, List[(N, E, N)]]
+  private var _inEdges = mutable.Map.empty[N, List[(N, E, N)]]
 
   // This is used to ensure the output of this Graph is always stable
   // Like method vertices(), or edges()
@@ -40,8 +42,8 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
   }
 
   private def init(): Unit = {
-    Option(vertexList).getOrElse(List.empty[N]).foreach(addVertex(_))
-    Option(edgeList).getOrElse(List.empty[(N, E, N)]).foreach(addEdge(_))
+    Option(vertexList).getOrElse(List.empty[N]).foreach(addVertex)
+    Option(edgeList).getOrElse(List.empty[(N, E, N)]).foreach(addEdge)
   }
 
   init()
@@ -65,6 +67,10 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
     val result = _edges.add(edge)
     if (result) {
       _indexs += edge -> nextId
+      val outEdges = _outEdges.getOrElse(edge._1, List.empty)
+      _outEdges += edge._1 -> (outEdges :+ edge)
+      val inEdges = _inEdges.getOrElse(edge._3, List.empty)
+      _inEdges += edge._3 -> (inEdges :+ edge)
     }
   }
 
@@ -81,28 +87,28 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
    * out degree
    */
   def outDegreeOf(node: N): Int = {
-    edges.count(_._1 == node)
+    _outEdges.getOrElse(node, List.empty).size
   }
 
   /**
    * in degree
    */
   def inDegreeOf(node: N): Int = {
-    edges.count(_._3 == node)
+    _inEdges.getOrElse(node, List.empty).size
   }
 
   /**
    * out going edges.
    */
   def outgoingEdgesOf(node: N): List[(N, E, N)] = {
-    edges.filter(_._1 == node)
+    _outEdges.getOrElse(node, List.empty)
   }
 
   /**
    * incoming edges.
    */
   def incomingEdgesOf(node: N): List[(N, E, N)] = {
-    edges.filter(_._3 == node)
+    _inEdges.getOrElse(node, List.empty)
   }
 
   /**
@@ -112,8 +118,16 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
   def removeVertex(node: N): Unit = {
     _vertices.remove(node)
     _indexs -= node
+    incomingEdgesOf(node).foreach{ edge =>
+      _outEdges.update(edge._1, _outEdges(edge._1).filter(!_.equals(edge)))
+    }
+    outgoingEdgesOf(node).foreach{ edge =>
+      _inEdges.update(edge._3, _inEdges(edge._3).filter(!_.equals(edge)))
+    }
     val toBeRemoved = incomingEdgesOf(node) ++ outgoingEdgesOf(node)
-    toBeRemoved.foreach(removeEdge(_))
+    toBeRemoved.foreach(removeEdge)
+    _outEdges -= node
+    _inEdges -= node
   }
 
   /**
@@ -165,7 +179,7 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
    * edges connected to node
    */
   def edgesOf(node: N): List[(N, E, N)] = {
-    (incomingEdgesOf(node) ++ outgoingEdgesOf(node)).toSet[(N, E, N)].toList.sortBy(_indexs(_))
+    (incomingEdgesOf(node) ++ outgoingEdgesOf(node)).distinct.sortBy(_indexs(_))
   }
 
   /**
@@ -180,7 +194,7 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
    * Current graph is changed.
    */
   def addGraph(other: Graph[N, E]): Graph[N, E] = {
-    (vertices ++ other.vertices).foreach(addVertex(_))
+    (vertices ++ other.vertices).foreach(addVertex)
     (edges ++ other.edges).foreach(edge => addEdge(edge._1, edge._2, edge._3))
     this
   }
@@ -234,7 +248,7 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
 
   private def removeZeroInDegree: List[N] = {
     val toBeRemoved = vertices.filter(inDegreeOf(_) == 0).sortBy(_indexs(_))
-    toBeRemoved.foreach(removeVertex(_))
+    toBeRemoved.foreach(removeVertex)
     toBeRemoved
   }
 
@@ -278,18 +292,18 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
         edge => {
           if (!indexMap.contains(edge._3)) {
             tarjan(edge._3)
-            if (lowLink.get(edge._3).get < lowLink.get(node).get) {
+            if (lowLink(edge._3) < lowLink(node)) {
               lowLink(node) = lowLink(edge._3)
             }
           } else {
-            if (inStack.get(edge._3).get && (indexMap.get(edge._3).get < lowLink.get(node).get)) {
+            if (inStack(edge._3) && (indexMap(edge._3) < lowLink(node))) {
               lowLink(node) = indexMap(edge._3)
             }
           }
         }
       }
 
-      if (indexMap.get(node).get == lowLink.get(node).get) {
+      if (indexMap(node) == lowLink(node)) {
         val circle = mutable.MutableList.empty[N]
         var n = node
         do {
