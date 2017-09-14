@@ -37,7 +37,7 @@ class PageRankWorker(taskContext: TaskContext, conf: UserConfig) extends Task(ta
 
   private val graph = conf.getValue[Graph[NodeWithTaskId[_], AnyRef]](PageRankApplication.DAG).get
 
-  private val node = graph.vertices.find { node =>
+  private val node = graph.getVertices.find { node =>
     node.taskId == taskContext.taskId.index
   }.get
 
