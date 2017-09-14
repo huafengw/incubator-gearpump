@@ -20,6 +20,7 @@ package org.apache.gearpump.util
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.language.implicitConversions
+import scala.util.Try
 
 /**
  * Generic mutable Graph libraries.
@@ -28,8 +29,8 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
 
   private val _vertices = mutable.Set.empty[N]
   private val _edges = mutable.Set.empty[(N, E, N)]
-  private var _outEdges = mutable.Map.empty[N, List[(N, E, N)]]
-  private var _inEdges = mutable.Map.empty[N, List[(N, E, N)]]
+  private val _outEdges = mutable.Map.empty[N, List[(N, E, N)]]
+  private val _inEdges = mutable.Map.empty[N, List[(N, E, N)]]
 
   // This is used to ensure the output of this Graph is always stable
   // Like method vertices(), or edges()
@@ -67,10 +68,8 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
     val result = _edges.add(edge)
     if (result) {
       _indexs += edge -> nextId
-      val outEdges = _outEdges.getOrElse(edge._1, List.empty)
-      _outEdges += edge._1 -> (outEdges :+ edge)
-      val inEdges = _inEdges.getOrElse(edge._3, List.empty)
-      _inEdges += edge._3 -> (inEdges :+ edge)
+      _outEdges += edge._1 -> (outgoingEdgesOf(edge._1) :+ edge)
+      _inEdges += edge._3 -> (incomingEdgesOf(edge._3) :+ edge)
     }
   }
 
@@ -87,14 +86,14 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
    * out degree
    */
   def outDegreeOf(node: N): Int = {
-    _outEdges.getOrElse(node, List.empty).size
+    outgoingEdgesOf(node).size
   }
 
   /**
    * in degree
    */
   def inDegreeOf(node: N): Int = {
-    _inEdges.getOrElse(node, List.empty).size
+    incomingEdgesOf(node).size
   }
 
   /**
@@ -112,18 +111,19 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
   }
 
   /**
+   * adjacent vertices.
+   */
+  def adjacentVertices(node: N): List[N] = {
+    outgoingEdgesOf(node).map(_._3)
+  }
+
+  /**
    * Remove vertex
    * Current Graph is changed.
    */
   def removeVertex(node: N): Unit = {
     _vertices.remove(node)
     _indexs -= node
-    incomingEdgesOf(node).foreach{ edge =>
-      _outEdges.update(edge._1, _outEdges(edge._1).filter(!_.equals(edge)))
-    }
-    outgoingEdgesOf(node).foreach{ edge =>
-      _inEdges.update(edge._3, _inEdges(edge._3).filter(!_.equals(edge)))
-    }
     val toBeRemoved = incomingEdgesOf(node) ++ outgoingEdgesOf(node)
     toBeRemoved.foreach(removeEdge)
     _outEdges -= node
@@ -137,6 +137,8 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
   private def removeEdge(edge: (N, E, N)): Unit = {
     _indexs -= edge
     _edges.remove(edge)
+    _inEdges.update(edge._3, _inEdges(edge._3).filter(!_.equals(edge)))
+    _outEdges.update(edge._1, _outEdges(edge._1).filter(!_.equals(edge)))
   }
 
   /**
@@ -247,7 +249,7 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
   }
 
   private def removeZeroInDegree: List[N] = {
-    val toBeRemoved = vertices.filter(inDegreeOf(_) == 0).sortBy(_indexs(_))
+    val toBeRemoved = vertices.filter(inDegreeOf(_) == 0)
     toBeRemoved.foreach(removeVertex)
     toBeRemoved
   }
@@ -257,13 +259,34 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
    * The node returned by Iterator is stable sorted.
    */
   def topologicalOrderIterator: Iterator[N] = {
-    val newGraph = copy
-    var output = List.empty[N]
+    tryTopologicalOrderIterator.get
+  }
 
-    while (!newGraph.isEmpty) {
-      output ++= newGraph.removeZeroInDegree
+  private def tryTopologicalOrderIterator: Try[Iterator[N]] = {
+    Try {
+      val indegreeMap = mutable.Map.empty[N, Int]
+      vertices.foreach(vertice => indegreeMap += vertice -> inDegreeOf(vertice))
+
+      val verticesWithZeroIndegree = mutable.Queue(indegreeMap.filter(_._2 == 0).keys
+        .toList.sortBy(_indexs(_)): _*)
+      var output = List.empty[N]
+      var count = 0
+      while (verticesWithZeroIndegree.nonEmpty) {
+        val vertice = verticesWithZeroIndegree.dequeue()
+        adjacentVertices(vertice).foreach { adjacentV =>
+          indegreeMap += adjacentV -> (indegreeMap(adjacentV) - 1)
+          if (indegreeMap(adjacentV) == 0) {
+            verticesWithZeroIndegree.enqueue(adjacentV)
+          }
+        }
+        output :+= vertice
+        count += 1
+      }
+      if (count != vertices.size) {
+        throw new Exception("There exists a cycle in the graph")
+      }
+      output.iterator
     }
-    output.iterator
   }
 
   /**
@@ -332,11 +355,12 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
    * http://www.drdobbs.com/database/topological-sorting/184410262
    */
   def topologicalOrderWithCirclesIterator: Iterator[N] = {
-    if (hasCycle()) {
+    val result = tryTopologicalOrderIterator
+    if (result.isFailure) {
       val topo = getAcyclicCopy().topologicalOrderIterator
       topo.flatMap(_.sortBy(_indexs(_)).iterator)
     } else {
-      topologicalOrderIterator
+      result.get
     }
   }
 
@@ -369,19 +393,7 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
    * check whether there is a loop
    */
   def hasCycle(): Boolean = {
-    @tailrec
-    def detectCycle(graph: Graph[N, E]): Boolean = {
-      if (graph.edges.isEmpty) {
-        false
-      } else if (graph.vertices.nonEmpty && !graph.vertices.exists(graph.inDegreeOf(_) == 0)) {
-        true
-      } else {
-        graph.removeZeroInDegree
-        detectCycle(graph)
-      }
-    }
-
-    detectCycle(copy)
+    tryTopologicalOrderIterator.isFailure
   }
 
   /**
