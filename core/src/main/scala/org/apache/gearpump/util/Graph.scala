@@ -260,9 +260,7 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
   def topologicalOrderIterator: Iterator[N] = {
     tryTopologicalOrderIterator match {
       case Success(intertor) => intertor
-      case Failure(_) =>
-        val topo = getAcyclicCopy().topologicalOrderIterator
-        topo.flatMap(_.sortBy(indexs(_)).iterator)
+      case Failure(_) => topologicalOrderWithCirclesIterator
     }
   }
 
