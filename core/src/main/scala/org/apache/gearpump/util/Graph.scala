@@ -17,6 +17,7 @@
  */
 
 package org.apache.gearpump.util
+
 import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
@@ -25,14 +26,14 @@ import scala.util.{Failure, Success, Try}
  * Generic mutable Graph libraries.
  */
 class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serializable {
-
+  private val LOG = LogUtil.getLogger(getClass)
   private val vertices = mutable.Set.empty[N]
   private val edges = mutable.Set.empty[(N, E, N)]
   private val outEdges = mutable.Map.empty[N, mutable.Set[(N, E, N)]]
   private val inEdges = mutable.Map.empty[N, mutable.Set[(N, E, N)]]
 
   // This is used to ensure the output of this Graph is always stable
-  // Like method vertices(), or edges()
+  // Like method getVertices(), or getEdges()
   private var indexs = Map.empty[Any, Int]
   private var nextIndex = 0
   private def nextId: Int = {
@@ -60,7 +61,7 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
   }
 
   /**
-   * Add a edge
+   * Add an edge
    * Current Graph is changed.
    */
   def addEdge(edge: (N, E, N)): Unit = {
@@ -187,6 +188,7 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
    * all edges
    */
   def getEdges: List[(N, E, N)] = {
+    // Sorts the edges so that we can keep the order for mapEdges
     edges.toList.sortBy(indexs(_))
   }
 
@@ -259,8 +261,10 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
    */
   def topologicalOrderIterator: Iterator[N] = {
     tryTopologicalOrderIterator match {
-      case Success(intertor) => intertor
-      case Failure(_) => topologicalOrderWithCirclesIterator
+      case Success(iterator) => iterator
+      case Failure(_) =>
+        LOG.warn("Please note this graph is cyclic.")
+        topologicalOrderWithCirclesIterator
     }
   }
 
