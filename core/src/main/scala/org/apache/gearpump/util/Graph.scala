@@ -112,7 +112,7 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
   /**
    * adjacent vertices.
    */
-  def adjacentVertices(node: N): List[N] = {
+  private def adjacentVertices(node: N): List[N] = {
     outgoingEdgesOf(node).map(_._3).toList
   }
 
@@ -155,14 +155,14 @@ class Graph[N, E](vertexList: List[N], edgeList: List[(N, E, N)]) extends Serial
    * Current Graph is not changed.
    */
   def mapVertex[NewNode](fun: N => NewNode): Graph[NewNode, E] = {
-    val newVertexes = getVertices.map(node => (node, fun(node)))
+    val newVertices = getVertices.map(node => (node, fun(node)))
 
-    val vertexMap: Map[N, NewNode] = newVertexes.toMap
+    val vertexMap: Map[N, NewNode] = newVertices.toMap
 
     val newEdges = getEdges.map { edge =>
       (vertexMap(edge._1), edge._2, vertexMap(edge._3))
     }
-    new Graph(newVertexes.map(_._2), newEdges)
+    new Graph(newVertices.map(_._2), newEdges)
   }
 
   /**
